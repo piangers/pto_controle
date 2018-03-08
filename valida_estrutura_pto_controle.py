@@ -1,0 +1,233 @@
+# -*- coding: utf-8 -*-
+# Verifica estrutura de pasta padrão dos pontos de controle (somente PPP)
+##DSG=group
+##Pasta=folder
+##Data=string
+##Medidores=string
+##Log=output file
+
+from os import listdir, sep
+from os.path import isdir, isfile, join
+from re import search
+import csv
+
+class EvaluateStructure():
+    def __init__(self, pasta, medidores, data):
+        self.erros = []
+        self.pasta = pasta
+        self.medidores = medidores.split(";")
+        self.data = data
+
+    def evaluate(self):
+        self.erros += self.no_files(self.pasta)
+        subpastas = [f for f in listdir(self.pasta) if isdir(join(self.pasta, f))]
+        if len(subpastas) < 1:
+            self.erros.append(u"A pasta {0} deveria ter subpastas.".format(self.pasta))
+        else:
+            for p in subpastas:
+                if p not in [u"{0}_{1}".format(m,self.data) for m in self.medidores]:
+                    self.erros.append(u"A pasta {0}{1}{2} não segue o padrão de nomenclatura (medidor_YYYY-MM-DD).".format(self.pasta, sep, p))
+                else:
+                    self.erros += self.evaluate_first_level(join(self.pasta,p))
+
+        return self.erros
+
+    def evaluate_first_level(self, pasta):
+        erros = []
+        ptos_csv = []
+        ptos_pasta = []
+
+        medidor, data = pasta.split(sep)[-1].split("_")
+        csv_name = "metadados_{0}_{1}.csv".format(medidor,data)
+        files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
+
+        if csv_name in files:
+            erros += self.evaluate_csv(pasta, csv_name)
+            ptos_csv = self.get_ptos_csv(pasta, csv_name)
+        else:
+            erros.append(u"A pasta {0} deveria conter o arquivo CSV de informações dos pontos do dia (metadados_{1}_{2}.csv).".format(pasta,medidor,data))
+        
+        if len(set(files).difference([csv_name])) > 0:
+            for f in set(files).difference([csv_name]):
+                erros.append(u"A pasta {0} não deveria conter o arquivo {1}.".format(pasta, f))
+
+        subpastas = [f for f in listdir(pasta) if isdir(join(pasta, f))]
+        if len(subpastas) < 1:
+            erros.append(u"A pasta {0} deveria ter subpastas.".format(pasta))
+        else:
+            for p in subpastas:
+                if self.evaluate_nome_ponto(p):
+                    ptos_pasta.append(p)
+                    erros += self.evaluate_second_level(join(pasta,p), p)
+                else:
+                    erros.append(u"A pasta {0}{1}{2} não segue o padrão de nomenclatura para pontos de controle.".format(pasta, sep, p))
+            for pto in set(ptos_pasta).difference(ptos_csv):
+                erros.append(u"O ponto {0} possui pasta porém não está presente no CSV.".format(pto))
+            for pto in set(ptos_csv).difference(ptos_pasta):
+                erros.append(u"O ponto {0} está presente no CSV porém não possui pasta.".format(pto))
+        return erros
+
+    def evaluate_second_level(self, pasta, pto):
+        erros = []
+        erros += self.no_files(pasta)
+        subpastas = [f for f in listdir(pasta) if isdir(join(pasta, f))]
+        pastas_incorretas = set(subpastas).difference(["1_Formato_Nativo", "2_RINEX", "3_Foto_Rastreio", "4_Croqui"])
+        pastas_faltando = set(["1_Formato_Nativo", "2_RINEX", "3_Foto_Rastreio", "4_Croqui"]).difference(subpastas)
+        pastas_ok = set(["1_Formato_Nativo", "2_RINEX", "3_Foto_Rastreio", "4_Croqui"]).intersection(subpastas)
+
+        if len(pastas_incorretas) > 0:
+            for p in pastas_incorretas:
+                erros.append(u"A pasta {0}{1}{2} não está prevista para estar na estrutura.".format(pasta, sep, p))
+
+        if len(pastas_faltando) > 0:
+            for p in pastas_faltando:
+                erros.append(u"A pasta {0} deveria ter a subpasta {1}.".format(pasta, p))
+                
+        if "1_Formato_Nativo" in pastas_ok:
+            erros += self.evaluate_formato_nativo(join(pasta,"1_Formato_Nativo"), pto)
+        if "2_RINEX" in pastas_ok:
+            erros += self.evaluate_rinex(join(pasta,"2_RINEX"), pto)
+        if "3_Foto_Rastreio" in pastas_ok:
+            erros += self.evaluate_foto_rastreio(join(pasta,"3_Foto_Rastreio"), pto)
+        if "4_Croqui" in pastas_ok:
+            erros += self.evaluate_croqui(join(pasta,"4_Croqui"), pto)
+
+        return erros
+
+    @staticmethod
+    def no_files(pasta):
+        erros = []
+        files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
+        if len(files) > 0:
+            erros.append(u"A pasta {0} não deve conter arquivos.".format(pasta))
+        return erros
+
+    @staticmethod
+    def evaluate_nome_ponto(nome):
+        #botar todos os estados
+        pto_regex ="^(RS|PR|SC|SP)-(HV|Base)-[1-9]+[0-9]*$"
+        if search(pto_regex, nome):
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def evaluate_csv(pasta, nome):
+        erros = []
+
+        data = nome[:-4].split("_")[-1]
+
+        columns = ["cod_ponto", "operador_levantamento", "data", "hora_inicio_rastreio", "hora_fim_rastreio",
+                    "taxa_gravacao", "altura_antena", "nr_serie_antena", "nr_serie_receptor", "tipo_medicao",
+                    "materializado", "med_altura", "metodo_implantacao", "referencia_implantacao"]
+        ptos = []
+
+        with open(join(pasta,nome), 'rb') as csv_file:
+            csv_reader = csv.DictReader(csv_file)
+            headers = csv_reader.fieldnames
+            if len(set(headers).difference(columns)) > 0:
+                for col in set(headers).difference(columns):
+                    erros.append(u"A coluna {0} está presente no CSV porém não é padrão.".format(col))
+            if len(set(columns).difference(headers)) > 0:
+                for col in set(columns).difference(headers):
+                    erros.append(u"A coluna {0} não está presente no CSV.".format(col))
+
+            for row in csv_reader:
+                if "cod_ponto" in row:
+                    if row["cod_ponto"] in ptos:
+                        erros.append(u"O ponto {0} está duplicado no CSV.".format(row["cod_ponto"]))
+                    else:
+                        ptos.append(row["cod_ponto"])
+                if "data" in row:
+                    if row["data"] <> data:
+                        erros.append(u"Data do ponto {0} está incompatível.".format(row["cod_ponto"]))
+                if "materializado" in row:
+                    if row["materializado"] <> "Não":
+                        erros.append(u"Materializado para {0} deveria ser Não.".format(row["cod_ponto"]))
+                if "metodo_implantacao" in row:
+                    if row["metodo_implantacao"] <> "PPP":
+                        erros.append(u"Método de implantação para {0} deveria ser PPP.".format(row["cod_ponto"]))
+                if "referencia_implantacao" in row:
+                    if row["referencia_implantacao"] <> "-":
+                        erros.append(u"Referência de implantação para {0} deveria ser -.".format(row["cod_ponto"]))
+        return erros
+
+    @staticmethod
+    def get_ptos_csv(pasta, nome):
+        ptos = []
+        with open(join(pasta,nome), 'rb') as csv_file:
+            csv_reader = csv.DictReader(csv_file)
+            for row in csv_reader:
+                if "cod_ponto" in row:
+                    ptos.append(row["cod_ponto"])
+        return ptos
+
+    @staticmethod
+    def evaluate_formato_nativo(pasta, pto):
+        erros = []
+        files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
+        arquivos_incorretos = set(files).difference(["{0}.DAT".format(pto), "{0}.T01".format(pto)])
+        arquivos_faltando = set(["{0}.DAT".format(pto), "{0}.T01".format(pto)]).difference(files)
+        if len(arquivos_incorretos) > 0:
+            for a in arquivos_incorretos:
+                erros.append(u"A pasta {0} não deve conter o arquivo {1}.".format(pasta, a))
+        if len(arquivos_faltando) > 0:
+            for a in arquivos_faltando:
+                erros.append(u"A pasta {0} deve conter o arquivo {1}.".format(pasta, a))
+        return erros
+
+    @staticmethod
+    def evaluate_rinex(pasta, pto):
+        erros = []
+        files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
+        arquivos_incorretos = set(files).difference(["{0}.16n".format(pto), "{0}.16o".format(pto)])
+        arquivos_faltando = set(["{0}.16n".format(pto), "{0}.16o".format(pto)]).difference(files)
+        if len(arquivos_incorretos) > 0:
+            for a in arquivos_incorretos:
+                erros.append(u"A pasta {0} não deve conter o arquivo {1}.".format(pasta, a))
+        if len(arquivos_faltando) > 0:
+            for a in arquivos_faltando:
+                erros.append(u"A pasta {0} deve conter o arquivo {1}.".format(pasta, a))
+        return erros
+
+    @staticmethod
+    def evaluate_foto_rastreio(pasta, pto):
+        erros = []
+        files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
+        fotos_ok = []
+        foto_regex = "^{0}_(360|3[0-5][1-9]|[0-2][0-9][1-9])_FOTO.jpg$".format(pto)
+
+        for f in files:
+            if search(foto_regex, f):
+                fotos_ok.append(f)
+            else:
+                erros.append(u"A pasta {0} não deve conter o arquivo {1}.".format(pasta, f))
+
+        if len(fotos_ok) <> 4:
+            erros.append(u"A pasta {0} deve conter exatamente 4 fotos.".format(pasta))
+            
+        return erros
+
+    @staticmethod
+    def evaluate_croqui(pasta, pto):
+        erros = []
+        files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
+        arquivos_incorretos = set(files).difference(["{0}_CROQUI.jpg".format(pto)])
+        arquivos_faltando = set(["{0}_CROQUI.jpg".format(pto)]).difference(files)
+        if len(arquivos_incorretos) > 0:
+            for a in arquivos_incorretos:
+                erros.append(u"A pasta {0} não deve conter o arquivo {1}.".format(pasta, a))
+        if len(arquivos_faltando) > 0:
+            for a in arquivos_faltando:
+                erros.append(u"A pasta {0} deve conter o arquivo {1}.".format(pasta, a))
+        return erros
+
+if __name__ == '__builtin__':
+    erros =  EvaluateStructure(Pasta,Medidores,Data).evaluate()
+    try:
+        with open(Log, 'w') as f:
+            erros_text = "\n".join(erros).encode('utf-8')
+            f.write(erros_text)
+            print "Log de erros gerado em {0}".format(Log)
+    except Exception as e:
+        print "Erro: {0}".format(e)
