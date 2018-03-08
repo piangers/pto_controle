@@ -1,11 +1,31 @@
 # -*- coding: utf-8 -*-
-# Verifica estrutura de pasta padrão dos pontos de controle (somente PPP)
+"""
+/***************************************************************************
+Name                 : Verifica estrutura Ponto de Controle
+Description          : Verifica estrutura de pasta padrão dos pontos de controle (somente PPP)
+Date                 : 2018-03-08
+copyright            : 1ºCGEO / DSG
+email                : diniz.felipe@eb.mil.br
+reference:
+ ***************************************************************************/
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+"""
 ##DSG=group
-##Pasta=folder
-##Data=string
-##Medidores=string
-##Log=output file
+##pasta=folder
+##data=string
+##medidores=string
+##log=output file
 
+from qgis.gui import QgsMessageBar
+from qgis.core import QgsMessageLog
+from qgis.utils import iface
 from os import listdir, sep
 from os.path import isdir, isfile, join
 from re import search
@@ -58,7 +78,7 @@ class EvaluateStructure():
             for p in subpastas:
                 if self.evaluate_nome_ponto(p):
                     ptos_pasta.append(p)
-                    erros += self.evaluate_second_level(join(pasta,p), p)
+                    erros += self.evaluate_second_level(join(pasta,p), p, data)
                 else:
                     erros.append(u"A pasta {0}{1}{2} não segue o padrão de nomenclatura para pontos de controle.".format(pasta, sep, p))
             for pto in set(ptos_pasta).difference(ptos_csv):
@@ -67,13 +87,13 @@ class EvaluateStructure():
                 erros.append(u"O ponto {0} está presente no CSV porém não possui pasta.".format(pto))
         return erros
 
-    def evaluate_second_level(self, pasta, pto):
+    def evaluate_second_level(self, pasta, pto, data):
         erros = []
         erros += self.no_files(pasta)
         subpastas = [f for f in listdir(pasta) if isdir(join(pasta, f))]
-        pastas_incorretas = set(subpastas).difference(["1_Formato_Nativo", "2_RINEX", "3_Foto_Rastreio", "4_Croqui"])
+        pastas_incorretas = set(subpastas).difference(["1_Formato_Nativo", "2_RINEX", "3_Foto_Rastreio", "4_Croqui", "5_Foto_Auxiliar"])
         pastas_faltando = set(["1_Formato_Nativo", "2_RINEX", "3_Foto_Rastreio", "4_Croqui"]).difference(subpastas)
-        pastas_ok = set(["1_Formato_Nativo", "2_RINEX", "3_Foto_Rastreio", "4_Croqui"]).intersection(subpastas)
+        pastas_ok = set(["1_Formato_Nativo", "2_RINEX", "3_Foto_Rastreio", "4_Croqui", "5_Foto_Auxiliar"]).intersection(subpastas)
 
         if len(pastas_incorretas) > 0:
             for p in pastas_incorretas:
@@ -86,11 +106,13 @@ class EvaluateStructure():
         if "1_Formato_Nativo" in pastas_ok:
             erros += self.evaluate_formato_nativo(join(pasta,"1_Formato_Nativo"), pto)
         if "2_RINEX" in pastas_ok:
-            erros += self.evaluate_rinex(join(pasta,"2_RINEX"), pto)
+            erros += self.evaluate_rinex(join(pasta,"2_RINEX"), pto, data)
         if "3_Foto_Rastreio" in pastas_ok:
             erros += self.evaluate_foto_rastreio(join(pasta,"3_Foto_Rastreio"), pto)
         if "4_Croqui" in pastas_ok:
             erros += self.evaluate_croqui(join(pasta,"4_Croqui"), pto)
+        if "5_Foto_Auxiliar" in pastas_ok:
+            erros += self.evaluate_foto_auxiliar(join(pasta,"5_Foto_Auxiliar"), pto)
 
         return erros
 
@@ -167,7 +189,7 @@ class EvaluateStructure():
         erros = []
         files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
         arquivos_incorretos = set(files).difference(["{0}.DAT".format(pto), "{0}.T01".format(pto)])
-        arquivos_faltando = set(["{0}.DAT".format(pto), "{0}.T01".format(pto)]).difference(files)
+        arquivos_faltando = set(["{0}.T01".format(pto)]).difference(files)
         if len(arquivos_incorretos) > 0:
             for a in arquivos_incorretos:
                 erros.append(u"A pasta {0} não deve conter o arquivo {1}.".format(pasta, a))
@@ -177,11 +199,12 @@ class EvaluateStructure():
         return erros
 
     @staticmethod
-    def evaluate_rinex(pasta, pto):
+    def evaluate_rinex(pasta, pto, data):
         erros = []
+        ano = data[2:4]
         files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
-        arquivos_incorretos = set(files).difference(["{0}.16n".format(pto), "{0}.16o".format(pto)])
-        arquivos_faltando = set(["{0}.16n".format(pto), "{0}.16o".format(pto)]).difference(files)
+        arquivos_incorretos = set(files).difference(["{0}.{1}n".format(pto,ano), "{0}.{1}o".format(pto, ano)])
+        arquivos_faltando = set(["{0}.{1}n".format(pto, ano), "{0}.{1}o".format(pto, ano)]).difference(files)
         if len(arquivos_incorretos) > 0:
             for a in arquivos_incorretos:
                 erros.append(u"A pasta {0} não deve conter o arquivo {1}.".format(pasta, a))
@@ -195,11 +218,13 @@ class EvaluateStructure():
         erros = []
         files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
         fotos_ok = []
-        foto_regex = "^{0}_(360|3[0-5][1-9]|[0-2][0-9][1-9])_FOTO.jpg$".format(pto)
+        foto_regex = "^{0}_(360|3[0-5][0-9]|[0-2][0-9][0-9])_FOTO.jpg$".format(pto)
 
         for f in files:
             if search(foto_regex, f):
                 fotos_ok.append(f)
+            elif f == "Thumbs.db":
+                pass
             else:
                 erros.append(u"A pasta {0} não deve conter o arquivo {1}.".format(pasta, f))
 
@@ -208,11 +233,29 @@ class EvaluateStructure():
             
         return erros
 
+
+    @staticmethod
+    def evaluate_foto_auxiliar(pasta, pto):
+        erros = []
+        files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
+        fotos_ok = []
+        foto_regex = "^{0}_\d+_FOTO_AUX.jpg$".format(pto)
+
+        for f in files:
+            if search(foto_regex, f):
+                fotos_ok.append(f)
+            elif f == "Thumbs.db":
+                pass
+            else:
+                erros.append(u"A pasta {0} não deve conter o arquivo {1}.".format(pasta, f))
+            
+        return erros
+
     @staticmethod
     def evaluate_croqui(pasta, pto):
         erros = []
         files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
-        arquivos_incorretos = set(files).difference(["{0}_CROQUI.jpg".format(pto)])
+        arquivos_incorretos = set(files).difference(["Thumbs.db","{0}_CROQUI.jpg".format(pto)])
         arquivos_faltando = set(["{0}_CROQUI.jpg".format(pto)]).difference(files)
         if len(arquivos_incorretos) > 0:
             for a in arquivos_incorretos:
@@ -223,11 +266,12 @@ class EvaluateStructure():
         return erros
 
 if __name__ == '__builtin__':
-    erros =  EvaluateStructure(Pasta,Medidores,Data).evaluate()
+    erros =  EvaluateStructure(pasta,medidores,data).evaluate()
     try:
-        with open(Log, 'w') as f:
+        with open(log, 'w') as f:
             erros_text = "\n".join(erros).encode('utf-8')
             f.write(erros_text)
-            print "Log de erros gerado em {0}".format(Log)
+            iface.messageBar().pushMessage(u'Situacao', "Arquivo de log gerado em {0}".format(log), level=QgsMessageBar.INFO, duration=5)
     except Exception as e:
-        print "Erro: {0}".format(e)
+        QgsMessageLog.logMessage("Erro: {0}".format(e), tag="Verifica estrutura", level=QgsMessageLog.CRITICAL)
+        iface.messageBar().pushMessage(u'Situacao', "Erro na execução do script.", level=QgsMessageBar.CRITICAL, duration=5)
