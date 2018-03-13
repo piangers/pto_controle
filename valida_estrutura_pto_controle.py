@@ -3,6 +3,7 @@
 /***************************************************************************
 Name                 : Verifica estrutura Ponto de Controle
 Description          : Verifica estrutura de pasta padrão dos pontos de controle (somente PPP)
+Version              : 1.1.0
 Date                 : 2018-03-08
 copyright            : 1ºCGEO / DSG
 email                : diniz.felipe@eb.mil.br
@@ -82,9 +83,9 @@ class EvaluateStructure():
                 else:
                     erros.append(u"A pasta {0}{1}{2} não segue o padrão de nomenclatura para pontos de controle.".format(pasta, sep, p))
             for pto in set(ptos_pasta).difference(ptos_csv):
-                erros.append(u"O ponto {0} possui pasta porém não está presente no CSV.".format(pto))
+                erros.append(u"{0}: O ponto {1} possui pasta porém não está presente no CSV.".format(pasta, pto))
             for pto in set(ptos_csv).difference(ptos_pasta):
-                erros.append(u"O ponto {0} está presente no CSV porém não possui pasta.".format(pto))
+                erros.append(u"{0}: O ponto {1} está presente no CSV porém não possui pasta.".format(pasta, pto))
         return erros
 
     def evaluate_second_level(self, pasta, pto, data):
@@ -149,29 +150,29 @@ class EvaluateStructure():
             headers = csv_reader.fieldnames
             if len(set(headers).difference(columns)) > 0:
                 for col in set(headers).difference(columns):
-                    erros.append(u"A coluna {0} está presente no CSV porém não é padrão.".format(col))
+                    erros.append(u"{0}: A coluna {1} está presente no CSV porém não é padrão.".format(pasta, col))
             if len(set(columns).difference(headers)) > 0:
                 for col in set(columns).difference(headers):
-                    erros.append(u"A coluna {0} não está presente no CSV.".format(col))
+                    erros.append(u"{0}: A coluna {1} não está presente no CSV.".format(pasta, col))
 
             for row in csv_reader:
                 if "cod_ponto" in row:
                     if row["cod_ponto"] in ptos:
-                        erros.append(u"O ponto {0} está duplicado no CSV.".format(row["cod_ponto"]))
+                        erros.append(u"{0}: O ponto {1} está duplicado no CSV.".format(pasta, row["cod_ponto"]))
                     else:
                         ptos.append(row["cod_ponto"])
                 if "data" in row:
                     if row["data"] <> data:
-                        erros.append(u"Data do ponto {0} está incompatível.".format(row["cod_ponto"]))
+                        erros.append(u"{0}: Data do ponto {1} está incompatível.".format(pasta, row["cod_ponto"]))
                 if "materializado" in row:
                     if row["materializado"] <> "Não":
-                        erros.append(u"Materializado para {0} deveria ser Não.".format(row["cod_ponto"]))
+                        erros.append(u"{0}: Materializado para {1} deveria ser Não.".format(pasta, row["cod_ponto"]))
                 if "metodo_implantacao" in row:
                     if row["metodo_implantacao"] <> "PPP":
-                        erros.append(u"Método de implantação para {0} deveria ser PPP.".format(row["cod_ponto"]))
+                        erros.append(u"{0}: Método de implantação para {1} deveria ser PPP.".format(pasta, row["cod_ponto"]))
                 if "referencia_implantacao" in row:
                     if row["referencia_implantacao"] <> "-":
-                        erros.append(u"Referência de implantação para {0} deveria ser -.".format(row["cod_ponto"]))
+                        erros.append(u"{0}: Referência de implantação para {1} deveria ser -.".format(pasta, row["cod_ponto"]))
         return erros
 
     @staticmethod
@@ -187,9 +188,9 @@ class EvaluateStructure():
     @staticmethod
     def evaluate_formato_nativo(pasta, pto):
         erros = []
-        files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
-        arquivos_incorretos = set(files).difference(["{0}.DAT".format(pto), "{0}.T01".format(pto)])
-        arquivos_faltando = set(["{0}.T01".format(pto)]).difference(files)
+        files = [f.replace(".DAT", ".dat").replace(".T01", ".t01") for f in listdir(pasta) if isfile(join(pasta, f))]
+        arquivos_incorretos = set(files).difference(["{0}.dat".format(pto), "{0}.t01".format(pto)])
+        arquivos_faltando = set(["{0}.t01".format(pto)]).difference(files)
         if len(arquivos_incorretos) > 0:
             for a in arquivos_incorretos:
                 erros.append(u"A pasta {0} não deve conter o arquivo {1}.".format(pasta, a))
@@ -218,7 +219,7 @@ class EvaluateStructure():
         erros = []
         files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
         fotos_ok = []
-        foto_regex = "^{0}_(360|3[0-5][0-9]|[0-2][0-9][0-9])_FOTO.jpg$".format(pto)
+        foto_regex = "^{0}_(360|3[0-5][0-9]|[0-2][0-9][0-9])_FOTO.(jpg|JPG)$".format(pto)
 
         for f in files:
             if search(foto_regex, f):
@@ -239,7 +240,7 @@ class EvaluateStructure():
         erros = []
         files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
         fotos_ok = []
-        foto_regex = "^{0}_\d+_FOTO_AUX.jpg$".format(pto)
+        foto_regex = "^{0}_\d+_FOTO_AUX.(jpg|JPG)$".format(pto)
 
         for f in files:
             if search(foto_regex, f):
@@ -254,7 +255,7 @@ class EvaluateStructure():
     @staticmethod
     def evaluate_croqui(pasta, pto):
         erros = []
-        files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
+        files = [f.replace(".JPG", ".jpg") for f in listdir(pasta) if isfile(join(pasta, f))]
         arquivos_incorretos = set(files).difference(["Thumbs.db","{0}_CROQUI.jpg".format(pto)])
         arquivos_faltando = set(["{0}_CROQUI.jpg".format(pto)]).difference(files)
         if len(arquivos_incorretos) > 0:
@@ -267,11 +268,18 @@ class EvaluateStructure():
 
 if __name__ == '__builtin__':
     erros =  EvaluateStructure(pasta,medidores,data).evaluate()
+
+    #log erros
+    QgsMessageLog.logMessage(u"Nova execução:", tag="Verifica estrutura", level=QgsMessageLog.INFO)
+    for erro in erros:
+        QgsMessageLog.logMessage(u"{0}".format(erro), tag="Verifica estrutura", level=QgsMessageLog.INFO)
+    
+    #save in file
     try:
         with open(log, 'w') as f:
             erros_text = "\n".join(erros).encode('utf-8')
             f.write(erros_text)
-            iface.messageBar().pushMessage(u'Situacao', "Arquivo de log gerado em {0}".format(log), level=QgsMessageBar.INFO, duration=5)
+            iface.messageBar().pushMessage(u'Situacao', "Arquivo de log gerado em {0}".format(log), level=QgsMessageBar.INFO, duration=20)
     except Exception as e:
-        QgsMessageLog.logMessage("Erro: {0}".format(e), tag="Verifica estrutura", level=QgsMessageLog.CRITICAL)
-        iface.messageBar().pushMessage(u'Situacao', "Erro na execução do script.", level=QgsMessageBar.CRITICAL, duration=5)
+        QgsMessageLog.logMessage(u"Erro: {0}".format(e), tag="Verifica estrutura", level=QgsMessageLog.CRITICAL)
+        iface.messageBar().pushMessage(u'Situacao', "Erro na execução do script.", level=QgsMessageBar.CRITICAL, duration=20)
