@@ -54,7 +54,7 @@ class EvaluateStructure():
                         self.erros.append(u"A pasta {0}{1}{2} não contém erros.".format(self.pasta, sep, p))
                     else:
                         self.erros += erros_pasta
-                    self.erros.append(u"\n")
+                self.erros.append(u"\n")
 
         return self.erros
 
