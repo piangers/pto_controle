@@ -3,7 +3,7 @@
 /***************************************************************************
 Name                 : Verifica estrutura Ponto de Controle
 Description          : Verifica estrutura de pasta padrão dos pontos de controle (somente PPP)
-Version              : 1.1.0
+Version              : 1.2.0
 Date                 : 2018-03-08
 copyright            : 1ºCGEO / DSG
 email                : diniz.felipe@eb.mil.br
@@ -49,7 +49,12 @@ class EvaluateStructure():
                 if p not in [u"{0}_{1}".format(m,self.data) for m in self.medidores]:
                     self.erros.append(u"A pasta {0}{1}{2} não segue o padrão de nomenclatura (medidor_YYYY-MM-DD).".format(self.pasta, sep, p))
                 else:
-                    self.erros += self.evaluate_first_level(join(self.pasta,p))
+                    erros_pasta = self.evaluate_first_level(join(self.pasta,p))
+                    if len(erros_pasta) == 0:
+                        self.erros.append(u"A pasta {0}{1}{2} não contém erros.".format(self.pasta, sep, p))
+                    else:
+                        self.erros += erros_pasta
+                    self.erros.append(u"\n")
 
         return self.erros
 
@@ -83,9 +88,9 @@ class EvaluateStructure():
                 else:
                     erros.append(u"A pasta {0}{1}{2} não segue o padrão de nomenclatura para pontos de controle.".format(pasta, sep, p))
             for pto in set(ptos_pasta).difference(ptos_csv):
-                erros.append(u"{0}: O ponto {1} possui pasta porém não está presente no CSV.".format(pasta, pto))
+                erros.append(u"{0} CSV - O ponto {1} possui pasta porém não está presente no CSV.".format(pasta, pto))
             for pto in set(ptos_csv).difference(ptos_pasta):
-                erros.append(u"{0}: O ponto {1} está presente no CSV porém não possui pasta.".format(pasta, pto))
+                erros.append(u"{0} CSV - O ponto {1} está presente no CSV porém não possui pasta.".format(pasta, pto))
         return erros
 
     def evaluate_second_level(self, pasta, pto, data):
@@ -150,29 +155,29 @@ class EvaluateStructure():
             headers = csv_reader.fieldnames
             if len(set(headers).difference(columns)) > 0:
                 for col in set(headers).difference(columns):
-                    erros.append(u"{0}: A coluna {1} está presente no CSV porém não é padrão.".format(pasta, col))
+                    erros.append(u"{0} CSV - A coluna {1} está presente no CSV porém não é padrão.".format(pasta, col))
             if len(set(columns).difference(headers)) > 0:
                 for col in set(columns).difference(headers):
-                    erros.append(u"{0}: A coluna {1} não está presente no CSV.".format(pasta, col))
+                    erros.append(u"{0} CSV - A coluna {1} não está presente no CSV.".format(pasta, col))
 
             for row in csv_reader:
                 if "cod_ponto" in row:
                     if row["cod_ponto"] in ptos:
-                        erros.append(u"{0}: O ponto {1} está duplicado no CSV.".format(pasta, row["cod_ponto"]))
+                        erros.append(u"{0} CSV - O ponto {1} está duplicado no CSV.".format(pasta, row["cod_ponto"]))
                     else:
                         ptos.append(row["cod_ponto"])
                 if "data" in row:
                     if row["data"] <> data:
-                        erros.append(u"{0}: Data do ponto {1} está incompatível.".format(pasta, row["cod_ponto"]))
+                        erros.append(u"{0} CSV - Data do ponto {1} está incompatível.".format(pasta, row["cod_ponto"]))
                 if "materializado" in row:
                     if row["materializado"] <> "Não":
-                        erros.append(u"{0}: Materializado para {1} deveria ser Não.".format(pasta, row["cod_ponto"]))
+                        erros.append(u"{0} CSV - Materializado para {1} deveria ser Não.".format(pasta, row["cod_ponto"]))
                 if "metodo_implantacao" in row:
                     if row["metodo_implantacao"] <> "PPP":
-                        erros.append(u"{0}: Método de implantação para {1} deveria ser PPP.".format(pasta, row["cod_ponto"]))
+                        erros.append(u"{0} CSV - Método de implantação para {1} deveria ser PPP.".format(pasta, row["cod_ponto"]))
                 if "referencia_implantacao" in row:
                     if row["referencia_implantacao"] <> "-":
-                        erros.append(u"{0}: Referência de implantação para {1} deveria ser -.".format(pasta, row["cod_ponto"]))
+                        erros.append(u"{0} CSV - Referência de implantação para {1} deveria ser -.".format(pasta, row["cod_ponto"]))
         return erros
 
     @staticmethod
