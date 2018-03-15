@@ -3,7 +3,7 @@
 /***************************************************************************
 Name                 : Verifica estrutura Ponto de Controle
 Description          : Verifica estrutura de pasta padrão dos pontos de controle (somente PPP)
-Version              : 1.2.0
+Version              : 1.3.0
 Date                 : 2018-03-08
 copyright            : 1ºCGEO / DSG
 email                : diniz.felipe@eb.mil.br
@@ -125,9 +125,19 @@ class EvaluateStructure():
     @staticmethod
     def no_files(pasta):
         erros = []
-        files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
+        files = [f for f in listdir(pasta) if isfile(join(pasta, f) and f != "Thumbs.db")]
         if len(files) > 0:
-            erros.append(u"A pasta {0} não deve conter arquivos.".format(pasta))
+            for f in files:
+                erros.append(u"A pasta {0} não deve conter o arquivo {1}.".format(pasta, f))
+        return erros
+
+    @staticmethod
+    def no_folders(pasta):
+        erros = []
+        subpastas = [f for f in listdir(pasta) if isdir(join(pasta, f))]
+        if len(subpastas) > 0:
+            for s in subpastas:
+                erros.append(u"A pasta {0} não deve conter a subpasta {1}.".format(pasta, s))
         return erros
 
     @staticmethod
@@ -146,7 +156,7 @@ class EvaluateStructure():
         data = nome[:-4].split("_")[-1]
 
         columns = ["cod_ponto", "operador_levantamento", "data", "hora_inicio_rastreio", "hora_fim_rastreio",
-                    "taxa_gravacao", "altura_antena", "nr_serie_antena", "nr_serie_receptor", "tipo_medicao",
+                    "taxa_gravacao", "altura_antena", "altura_objeto", "nr_serie_antena", "nr_serie_receptor", "tipo_medicao",
                     "materializado", "med_altura", "metodo_implantacao", "referencia_implantacao"]
         ptos = []
 
@@ -193,6 +203,7 @@ class EvaluateStructure():
     @staticmethod
     def evaluate_formato_nativo(pasta, pto):
         erros = []
+        erros += self.no_folders(pasta)
         files = [f.replace(".DAT", ".dat").replace(".T01", ".t01") for f in listdir(pasta) if isfile(join(pasta, f))]
         arquivos_incorretos = set(files).difference(["{0}.dat".format(pto), "{0}.t01".format(pto)])
         arquivos_faltando = set(["{0}.t01".format(pto)]).difference(files)
@@ -207,6 +218,7 @@ class EvaluateStructure():
     @staticmethod
     def evaluate_rinex(pasta, pto, data):
         erros = []
+        erros += self.no_folders(pasta)
         ano = data[2:4]
         files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
         arquivos_incorretos = set(files).difference(["{0}.{1}n".format(pto,ano), "{0}.{1}o".format(pto, ano)])
@@ -222,6 +234,7 @@ class EvaluateStructure():
     @staticmethod
     def evaluate_foto_rastreio(pasta, pto):
         erros = []
+        erros += self.no_folders(pasta)
         files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
         fotos_ok = []
         foto_regex = "^{0}_(360|3[0-5][0-9]|[0-2][0-9][0-9])_FOTO.(jpg|JPG)$".format(pto)
@@ -243,6 +256,7 @@ class EvaluateStructure():
     @staticmethod
     def evaluate_foto_auxiliar(pasta, pto):
         erros = []
+        erros += self.no_folders(pasta)
         files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
         fotos_ok = []
         foto_regex = "^{0}_\d+_FOTO_AUX.(jpg|JPG)$".format(pto)
@@ -260,6 +274,7 @@ class EvaluateStructure():
     @staticmethod
     def evaluate_croqui(pasta, pto):
         erros = []
+        erros += self.no_folders(pasta)
         files = [f.replace(".JPG", ".jpg") for f in listdir(pasta) if isfile(join(pasta, f))]
         arquivos_incorretos = set(files).difference(["Thumbs.db","{0}_CROQUI.jpg".format(pto)])
         arquivos_faltando = set(["{0}_CROQUI.jpg".format(pto)]).difference(files)
