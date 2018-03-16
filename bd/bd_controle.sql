@@ -31,6 +31,13 @@ CREATE TABLE controle.ponto_controle_p(
 	 WITH (FILLFACTOR = 80)
 );
 
+CREATE TABLE controle.trilha_l(
+	id serial NOT NULL,
+	geom geometry(LINESTRING, 31982),
+	CONSTRAINT trilha_l_pk PRIMARY KEY (id)
+	 WITH (FILLFACTOR = 80)
+);
+
 GRANT USAGE ON SCHEMA controle TO controle_pto;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA controle TO controle_pto;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA controle TO controle_pto;
