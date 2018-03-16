@@ -24,9 +24,6 @@ reference:
 ##medidores=string
 ##log=output file
 
-from qgis.gui import QgsMessageBar
-from qgis.core import QgsMessageLog
-from qgis.utils import iface
 from os import listdir, sep
 from os.path import isdir, isfile, join
 from re import search
@@ -125,7 +122,7 @@ class EvaluateStructure():
     @staticmethod
     def no_files(pasta):
         erros = []
-        files = [f for f in listdir(pasta) if isfile(join(pasta, f) and f != "Thumbs.db")]
+        files = [f for f in listdir(pasta) if isfile(join(pasta, f)) and f != "Thumbs.db"]
         if len(files) > 0:
             for f in files:
                 erros.append(u"A pasta {0} não deve conter o arquivo {1}.".format(pasta, f))
@@ -200,8 +197,7 @@ class EvaluateStructure():
                     ptos.append(row["cod_ponto"])
         return ptos
 
-    @staticmethod
-    def evaluate_formato_nativo(pasta, pto):
+    def evaluate_formato_nativo(self, pasta, pto):
         erros = []
         erros += self.no_folders(pasta)
         files = [f.replace(".DAT", ".dat").replace(".T01", ".t01") for f in listdir(pasta) if isfile(join(pasta, f))]
@@ -215,8 +211,7 @@ class EvaluateStructure():
                 erros.append(u"A pasta {0} deve conter o arquivo {1}.".format(pasta, a))
         return erros
 
-    @staticmethod
-    def evaluate_rinex(pasta, pto, data):
+    def evaluate_rinex(self, pasta, pto, data):
         erros = []
         erros += self.no_folders(pasta)
         ano = data[2:4]
@@ -231,8 +226,7 @@ class EvaluateStructure():
                 erros.append(u"A pasta {0} deve conter o arquivo {1}.".format(pasta, a))
         return erros
 
-    @staticmethod
-    def evaluate_foto_rastreio(pasta, pto):
+    def evaluate_foto_rastreio(self, pasta, pto):
         erros = []
         erros += self.no_folders(pasta)
         files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
@@ -252,9 +246,7 @@ class EvaluateStructure():
             
         return erros
 
-
-    @staticmethod
-    def evaluate_foto_auxiliar(pasta, pto):
+    def evaluate_foto_auxiliar(self, pasta, pto):
         erros = []
         erros += self.no_folders(pasta)
         files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
@@ -271,8 +263,7 @@ class EvaluateStructure():
             
         return erros
 
-    @staticmethod
-    def evaluate_croqui(pasta, pto):
+    def evaluate_croqui(self, pasta, pto):
         erros = []
         erros += self.no_folders(pasta)
         files = [f.replace(".JPG", ".jpg") for f in listdir(pasta) if isfile(join(pasta, f))]
@@ -287,6 +278,10 @@ class EvaluateStructure():
         return erros
 
 if __name__ == '__builtin__':
+
+    from qgis.gui import QgsMessageBar
+    from qgis.core import QgsMessageLog
+    from qgis.utils import iface
     erros =  EvaluateStructure(pasta,medidores,data).evaluate()
 
     #log erros
@@ -303,3 +298,8 @@ if __name__ == '__builtin__':
     except Exception as e:
         QgsMessageLog.logMessage(u"Erro: {0}".format(e), tag="Verifica estrutura", level=QgsMessageLog.CRITICAL)
         iface.messageBar().pushMessage(u'Situacao', "Erro na execução do script.", level=QgsMessageBar.CRITICAL, duration=20)
+
+
+if __name__ == '__main__':
+    erros =  EvaluateStructure('','','').evaluate()
+    print(erros)
