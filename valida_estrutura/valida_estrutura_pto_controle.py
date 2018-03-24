@@ -37,6 +37,9 @@ class EvaluateStructure():
         self.medidores = medidores.split(";")
         self.data = data
 
+        self.rinex_data = {}
+        self.csv_data = {}
+
     def evaluate(self):
         self.erros += self.no_files(self.pasta)
         subpastas = [f for f in listdir(
@@ -52,6 +55,9 @@ class EvaluateStructure():
                 else:
                     erros_pasta = self.evaluate_first_level(
                         join(self.pasta, p))
+
+                    erros_pasta += self.compare_csv_rinex()
+
                     if len(erros_pasta) == 0:
                         self.erros.append(
                             u"A pasta {0}{1}{2} não contém erros.".format(self.pasta, sep, p))
@@ -72,7 +78,10 @@ class EvaluateStructure():
 
         if csv_name in files:
             erros += self.evaluate_csv(pasta, csv_name)
-            ptos_csv = self.get_ptos_csv(pasta, csv_name)
+            csv_data = self.get_data_csv(pasta, csv_name)
+            ptos_csv = [x["cod_ponto"] for x in csv_data]
+            for pto in csv_data:
+                self.csv_data[pto["cod_ponto"]] = pto
         else:
             erros.append(u"A pasta {0} deveria conter o arquivo CSV de informações dos pontos do dia (metadados_{1}_{2}.csv).".format(
                 pasta, medidor, data))
@@ -218,14 +227,47 @@ class EvaluateStructure():
         return erros
 
     @staticmethod
-    def get_ptos_csv(pasta, nome):
+    def get_data_csv(pasta, nome):
         ptos = []
         with open(join(pasta, nome), 'rb') as csv_file:
             csv_reader = csv.DictReader(csv_file)
             for row in csv_reader:
+                aux = {}
                 if "cod_ponto" in row:
-                    ptos.append(row["cod_ponto"])
+                    aux["cod_ponto"] = row["cod_ponto"]
+                if "nr_serie_receptor" in row:
+                    aux["nr_serie_receptor"] = row["nr_serie_receptor"]
+                if "nr_serie_antena" in row:
+                    aux["nr_serie_antena"] = row["nr_serie_antena"]
+                if "hora_inicio_rastreio" in row:
+                    aux["hora_inicio_rastreio"] = row["hora_inicio_rastreio"]
+                if "hora_fim_rastreio" in row:
+                    aux["hora_fim_rastreio"] = row["hora_fim_rastreio"]
+                if "data" in row:
+                    aux["data"] = row["data"]
+                if "altura_antena" in row:
+                    aux["altura_antena"] = row["altura_antena"]
+                ptos.append(aux)
         return ptos
+
+    @staticmethod
+    def get_rinex_data(pasta, nome):
+        rinex_info = {}
+        with open(join(pasta, nome), 'rb') as rinex_file:
+            lines = rinex_file.readlines()
+            rinex_info["cod_ponto_1"] = lines[3].split(' ')[0]
+            rinex_info["cod_ponto_2"] = lines[4].split(' ')[0]
+            rinex_info["nr_serie_receptor"] = lines[6].split(' ')[0]
+            rinex_info["nr_serie_antena"] = lines[7].split(' ')[0]
+            rinex_info["altura_antena"] = lines[9].strip().split(' ')[0]
+            aux_inicio = [x for x in lines[12].strip().split(' ') if x]
+            rinex_info["data_rastreio_1"] = "{0}-{1}-{2}".format(aux_inicio[0],aux_inicio[1],aux_inicio[2])
+            rinex_info["hora_inicio_rastreio"] = "{0}:{1}".format(aux_inicio[3],aux_inicio[4])
+            aux_fim = [x for x in lines[13].strip().split(' ') if x]
+            rinex_info["data_rastreio_2"] = "{0}-{1}-{2}".format(aux_inicio[0],aux_inicio[1],aux_inicio[2])
+            rinex_info["hora_fim_rastreio"] = "{0}:{1}".format(aux_inicio[3],aux_inicio[4])
+
+        return rinex_info
 
     def evaluate_formato_nativo(self, pasta, pto):
         erros = []
@@ -262,6 +304,10 @@ class EvaluateStructure():
             for a in arquivos_faltando:
                 erros.append(
                     u"A pasta {0} deve conter o arquivo {1}.".format(pasta, a))
+        else:
+            rinex_name = "{0}.{1}o".format(pto, ano)
+            self.rinex_data[pto] = self.get_rinex_data(pasta,rinex_name)
+
         return erros
 
     def evaluate_foto_rastreio(self, pasta, pto):
@@ -323,6 +369,27 @@ class EvaluateStructure():
                     u"A pasta {0} deve conter o arquivo {1}.".format(pasta, a))
         return erros
 
+    def compare_csv_rinex(self):
+        erros = []
+        for key in self.csv_data:
+            if key in self.rinex_data:
+                if self.rinex_data[key]["cod_ponto_1"] != self.csv_data[key]["cod_ponto"] or 
+                    self.rinex_data[key]["cod_ponto_2"] != self.csv_data[key]["cod_ponto"]:
+                    erros.append(u"O arquivo RINEX do ponto {0} está com o nome de ponto incorreto.".format(self.csv_data[key]["cod_ponto"]))
+                if self.rinex_data[key]["nr_serie_receptor"] != self.csv_data[key]["nr_serie_receptor"]:
+                    erros.append(u"O arquivo RINEX do ponto {0} está com o nr serie receptor diferente do CSV.".format(self.csv_data[key]["cod_ponto"]))
+                if self.rinex_data[key]["nr_serie_antena"] != self.csv_data[key]["nr_serie_antena"]:
+                    erros.append(u"O arquivo RINEX do ponto {0} está com o nr serie antena diferente do CSV.".format(self.csv_data[key]["cod_ponto"]))
+                if self.rinex_data[key]["hora_inicio_rastreio"] != self.csv_data[key]["hora_inicio_rastreio"]:
+                    erros.append(u"O arquivo RINEX do ponto {0} está com a hora inicio rastreio diferente do CSV.".format(self.csv_data[key]["cod_ponto"]))
+                if self.rinex_data[key]["hora_fim_rastreio"] != self.csv_data[key]["hora_fim_rastreio"]:
+                    erros.append(u"O arquivo RINEX do ponto {0} está com a hora fim rastreio diferente do CSV.".format(self.csv_data[key]["cod_ponto"]))
+                if self.rinex_data[key]["data_rastreio_1"] != self.csv_data[key]["data"] or 
+                    self.rinex_data[key]["data_rastreio_2"] != self.csv_data[key]["data"]:
+                    erros.append(u"O arquivo RINEX do ponto {0} está com a data de rastreio incorreta.".format(self.csv_data[key]["cod_ponto"]))
+                if self.rinex_data[key]["altura_antena"] != self.csv_data[key]["altura_antena"]:
+                    erros.append(u"O arquivo RINEX do ponto {0} está com a altura antena diferente do CSV.".format(self.csv_data[key]["cod_ponto"]))
+        return erros
 
 if __name__ == '__builtin__':
 
