@@ -373,8 +373,7 @@ class EvaluateStructure():
         erros = []
         for key in self.csv_data:
             if key in self.rinex_data:
-                if self.rinex_data[key]["cod_ponto_1"] != self.csv_data[key]["cod_ponto"] or 
-                    self.rinex_data[key]["cod_ponto_2"] != self.csv_data[key]["cod_ponto"]:
+                if self.rinex_data[key]["cod_ponto_1"] != self.csv_data[key]["cod_ponto"] or self.rinex_data[key]["cod_ponto_2"] != self.csv_data[key]["cod_ponto"]:
                     erros.append(u"O arquivo RINEX do ponto {0} está com o nome de ponto incorreto.".format(self.csv_data[key]["cod_ponto"]))
                 if self.rinex_data[key]["nr_serie_receptor"] != self.csv_data[key]["nr_serie_receptor"]:
                     erros.append(u"O arquivo RINEX do ponto {0} está com o nr serie receptor diferente do CSV.".format(self.csv_data[key]["cod_ponto"]))
@@ -384,8 +383,7 @@ class EvaluateStructure():
                     erros.append(u"O arquivo RINEX do ponto {0} está com a hora inicio rastreio diferente do CSV.".format(self.csv_data[key]["cod_ponto"]))
                 if self.rinex_data[key]["hora_fim_rastreio"] != self.csv_data[key]["hora_fim_rastreio"]:
                     erros.append(u"O arquivo RINEX do ponto {0} está com a hora fim rastreio diferente do CSV.".format(self.csv_data[key]["cod_ponto"]))
-                if self.rinex_data[key]["data_rastreio_1"] != self.csv_data[key]["data"] or 
-                    self.rinex_data[key]["data_rastreio_2"] != self.csv_data[key]["data"]:
+                if self.rinex_data[key]["data_rastreio_1"] != self.csv_data[key]["data"] or self.rinex_data[key]["data_rastreio_2"] != self.csv_data[key]["data"]:
                     erros.append(u"O arquivo RINEX do ponto {0} está com a data de rastreio incorreta.".format(self.csv_data[key]["cod_ponto"]))
                 if self.rinex_data[key]["altura_antena"] != self.csv_data[key]["altura_antena"]:
                     erros.append(u"O arquivo RINEX do ponto {0} está com a altura antena diferente do CSV.".format(self.csv_data[key]["cod_ponto"]))
