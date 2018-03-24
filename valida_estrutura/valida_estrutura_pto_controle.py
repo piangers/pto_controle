@@ -214,13 +214,13 @@ class EvaluateStructure():
                             erros.append(u"{0} CSV - O ponto {1} foi medido por menos de 40 min ({2} min).".format(pasta, row["cod_ponto"],minutes))
                     except:
                         erros.append(u"{0} CSV - O ponto {1} está possui valores inválidos para hora_fim_rastreio ou hora_inicio_rastreio.".format(pasta, row["cod_ponto"]))
-                if "altura_objeto" in row:
+                if "altura_antena" in row:
                     try:
-                        altura = float(row["altura_objeto"].replace(',', '.'))
+                        altura = float(row["altura_antena"].replace(',', '.'))
                         if altura > 9:
-                            erros.append(u"{0} CSV - O ponto {1} possui altura maior que 9 metros ({2}).".format(pasta, row["cod_ponto"], row["altura_objeto"]))
+                            erros.append(u"{0} CSV - O ponto {1} possui altura maior que 9 metros ({2}).".format(pasta, row["cod_ponto"], row["altura_antena"]))
                     except:
-                        erros.append(u"{0} CSV - O ponto {1} está possui valores inválidos para altura da antena ({2}).".format(pasta, row["cod_ponto"], row["altura_objeto"]))
+                        erros.append(u"{0} CSV - O ponto {1} está possui valores inválidos para altura da antena ({2}).".format(pasta, row["cod_ponto"], row["altura_antena"]))
                 if "cod_ponto" in row:
                     if row["cod_ponto"] in ptos:
                         erros.append(
