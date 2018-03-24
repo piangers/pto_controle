@@ -18,11 +18,11 @@ reference:
  *                                                                         *
  ***************************************************************************/
 """
-# DSG=group
-# pasta=folder
-# data=string
-# medidores=string
-# log=output file
+##DSG=group
+##data=string
+##medidores=string
+##pasta=folder
+##log=output file
 
 from os import listdir, sep
 from os.path import isdir, isfile, join

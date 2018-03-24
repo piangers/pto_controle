@@ -21,10 +21,10 @@ INSERT INTO controle.tipo_situacao (nome) VALUES
 
 CREATE TABLE controle.ponto_controle_p(
 	id serial NOT NULL,
-    nome varchar(255) NOT NULL,
-    mi varchar(255) NOT NULL,
-    medidor varchar(255), 
-    data_medicao timestamp with time zone,
+  nome varchar(255) NOT NULL,
+  mi varchar(255) NOT NULL,
+  medidor varchar(255), 
+  data_medicao timestamp with time zone,
 	tipo_situacao_id INTEGER NOT NULL REFERENCES controle.tipo_situacao (id),
 	geom geometry(POINT, 31982),
 	CONSTRAINT ponto_controle_p_pk PRIMARY KEY (id)
