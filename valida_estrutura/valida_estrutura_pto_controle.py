@@ -210,7 +210,7 @@ class EvaluateStructure():
                     try:
                         tdelta = datetime.strptime(row["hora_fim_rastreio"], FMT) - datetime.strptime(row["hora_inicio_rastreio"], FMT)
                         minutes = tdelta.seconds/60
-                        if minutes < 40:
+                        if minutes < 38:
                             erros.append(u"{0} CSV - O ponto {1} foi medido por menos de 40 min ({2} min).".format(pasta, row["cod_ponto"],minutes))
                     except:
                         erros.append(u"{0} CSV - O ponto {1} está possui valores inválidos para hora_fim_rastreio ou hora_inicio_rastreio.".format(pasta, row["cod_ponto"]))
@@ -401,17 +401,21 @@ class EvaluateStructure():
                 if self.rinex_data[key]["nr_serie_antena"] != self.csv_data[key]["nr_serie_antena"]:
                     erros.append(u"{0}: O arquivo RINEX do ponto {1} está com o nr serie antena diferente do CSV.".format(pasta, self.csv_data[key]["cod_ponto"]))
                 
-                if self.rinex_data[key]["hora_inicio_rastreio"] != self.csv_data[key]["hora_inicio_rastreio"]:
-                    erros.append(u"{0}: O arquivo RINEX do ponto {1} está com a hora inicio rastreio diferente do CSV.".format(pasta, self.csv_data[key]["cod_ponto"]))
-                
-                if self.rinex_data[key]["hora_fim_rastreio"] != self.csv_data[key]["hora_fim_rastreio"]:
-                    erros.append(u"{0}: O arquivo RINEX do ponto {1} está com a hora fim rastreio diferente do CSV.".format(pasta, self.csv_data[key]["cod_ponto"]))
-                
                 if self.rinex_data[key]["data_rastreio_1"] != self.csv_data[key]["data"] or self.rinex_data[key]["data_rastreio_2"] != self.csv_data[key]["data"]:
                     erros.append(u"{0}: O arquivo RINEX do ponto {1} está com a data de rastreio incorreta.".format(pasta, self.csv_data[key]["cod_ponto"]))
                 
                 if self.rinex_data[key]["altura_antena"] != self.csv_data[key]["altura_antena"]:
                     erros.append(u"{0}: O arquivo RINEX do ponto {1} está com a altura antena diferente do CSV.".format(pasta, self.csv_data[key]["cod_ponto"]))
+
+                FMT = '%H:%M'
+                try:
+                    tdelta = datetime.strptime(self.rinex_data[key]["hora_fim_rastreio"], FMT) - datetime.strptime(self.rinex_data[key]["hora_inicio_rastreio"], FMT)
+                    minutes = tdelta.seconds/60
+                    if minutes < 38:
+                        erros.append(u"{0} RINEX - O ponto {1} foi medido por menos de 40 min ({2} min).".format(pasta, self.csv_data[key]["cod_ponto"],minutes))
+                except:
+                    erros.append(u"{0} RINEX - O ponto {1} está possui valores inválidos para hora_fim_rastreio ou hora_inicio_rastreio. Contate o Gerente.".format(pasta, self.csv_data[key]["cod_ponto"]))
+
             else:
                 erros.append(u"{0}: Não foi encontrado informações do RINEX compatíveis com o ponto {1}.".format(pasta, self.csv_data[key]["cod_ponto"]))                
         return erros
