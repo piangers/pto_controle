@@ -210,11 +210,11 @@ class EvaluateStructure():
                     minutes = tdelta.seconds/60
                     if minutes < 40:
                         erros.append(
-                            u"{0} CSV - O ponto {1} está foi medido por menos de 40 min ({2} min).".format(pasta, row["cod_ponto"],minutes))
+                            u"{0} CSV - O ponto {1} foi medido por menos de 40 min ({2} min).".format(pasta, row["cod_ponto"],minutes))
                 if "altura_objeto" in row:
                     if row["altura_objeto"] > 9:
                         erros.append(
-                            u"{0} CSV - O ponto {1} está possui altura maior que 9 metros ({2}).".format(pasta, row["cod_ponto"], row["altura_objeto"]))
+                            u"{0} CSV - O ponto {1} possui altura maior que 9 metros ({2}).".format(pasta, row["cod_ponto"], row["altura_objeto"]))
                 if "cod_ponto" in row:
                     if row["cod_ponto"] in ptos:
                         erros.append(
