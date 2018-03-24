@@ -216,7 +216,7 @@ class EvaluateStructure():
                         erros.append(u"{0} CSV - O ponto {1} está possui valores inválidos para hora_fim_rastreio ou hora_inicio_rastreio.".format(pasta, row["cod_ponto"]))
                 if "altura_objeto" in row:
                     try:
-                        altura = float(row["altura_objeto"])
+                        altura = float(row["altura_objeto"].replace(',', '.'))
                         if altura > 9:
                             erros.append(u"{0} CSV - O ponto {1} possui altura maior que 9 metros ({2}).".format(pasta, row["cod_ponto"], row["altura_objeto"]))
                     except:
