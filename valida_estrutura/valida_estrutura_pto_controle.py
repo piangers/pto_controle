@@ -221,6 +221,15 @@ class EvaluateStructure():
                             erros.append(u"{0} CSV - O ponto {1} possui altura maior que 9 metros ({2}).".format(pasta, row["cod_ponto"], row["altura_antena"]))
                     except:
                         erros.append(u"{0} CSV - O ponto {1} está possui valores inválidos para altura da antena ({2}).".format(pasta, row["cod_ponto"], row["altura_antena"]))
+                if "altura_antena" in row and "altura_objeto" in row:
+                    try:
+                        altura_antena = float(row["altura_antena"].replace(',', '.'))
+                        altura_objeto = float(row["altura_objeto"].replace(',', '.'))
+                        if altura_objeto > altura_antena:
+                            erros.append(u"{0} CSV - O ponto {1} possui altura do objeto ({2}) maior que a altura da antena ({3}).".format(pasta, row["cod_ponto"], row["altura_objeto"], row["altura_antena"]))
+                    except:
+                        erros.append(u"{0} CSV - O ponto {1} está possui valores inválidos para altura do objeto ({2}) ou da antena ({3}).".format(pasta, row["cod_ponto"], row["altura_objeto"], row["altura_antena"]))
+ 
                 if "cod_ponto" in row:
                     if row["cod_ponto"] in ptos:
                         erros.append(
