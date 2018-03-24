@@ -395,6 +395,8 @@ class EvaluateStructure():
                 
                 if self.rinex_data[key]["altura_antena"] != self.csv_data[key]["altura_antena"]:
                     erros.append(u"{0}: O arquivo RINEX do ponto {1} está com a altura antena diferente do CSV.".format(pasta, self.csv_data[key]["cod_ponto"]))
+            else:
+                erros.append(u"{0}: Não foi encontrado informações do RINEX compatíveis com o ponto {1}.".format(pasta, self.csv_data[key]["cod_ponto"]))                
         return erros
 
 if __name__ == '__builtin__':
