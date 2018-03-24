@@ -29,6 +29,7 @@ from os.path import isdir, isfile, join
 from re import search
 import csv
 from datetime import datetime
+import sys
 
 class EvaluateStructure():
     def __init__(self, pasta, medidores, data):
@@ -213,14 +214,14 @@ class EvaluateStructure():
                             erros.append(u"{0} CSV - O ponto {1} foi medido por menos de 40 min ({2} min).".format(pasta, row["cod_ponto"],minutes))
                     except:
                         erros.append(u"{0} CSV - O ponto {1} está possui valores inválidos para hora_fim_rastreio ou hora_inicio_rastreio.".format(pasta, row["cod_ponto"]))
-               if "altura_objeto" in row:
-                   try:
+                if "altura_objeto" in row:
+                    try:
                         altura = float(row["altura_objeto"])
                         if altura > 9:
                             erros.append(u"{0} CSV - O ponto {1} possui altura maior que 9 metros ({2}).".format(pasta, row["cod_ponto"], row["altura_objeto"]))
                     except:
                         erros.append(u"{0} CSV - O ponto {1} está possui valores inválidos para altura da antena ({2}).".format(pasta, row["cod_ponto"], row["altura_objeto"]))
-               if "cod_ponto" in row:
+                if "cod_ponto" in row:
                     if row["cod_ponto"] in ptos:
                         erros.append(
                             u"{0} CSV - O ponto {1} está duplicado no CSV.".format(pasta, row["cod_ponto"]))
