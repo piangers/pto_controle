@@ -56,7 +56,9 @@ class EvaluateStructure():
                     erros_pasta = self.evaluate_first_level(
                         join(self.pasta, p))
 
-                    erros_pasta += self.compare_csv_rinex()
+                    erros_pasta += self.compare_csv_rinex(join(self.pasta, p))
+                    self.rinex_data = {}
+                    self.csv_data = {}
 
                     if len(erros_pasta) == 0:
                         self.erros.append(
@@ -369,24 +371,30 @@ class EvaluateStructure():
                     u"A pasta {0} deve conter o arquivo {1}.".format(pasta, a))
         return erros
 
-    def compare_csv_rinex(self):
+    def compare_csv_rinex(self, pasta):
         erros = []
         for key in self.csv_data:
             if key in self.rinex_data:
                 if self.rinex_data[key]["cod_ponto_1"] != self.csv_data[key]["cod_ponto"] or self.rinex_data[key]["cod_ponto_2"] != self.csv_data[key]["cod_ponto"]:
-                    erros.append(u"O arquivo RINEX do ponto {0} está com o nome de ponto incorreto.".format(self.csv_data[key]["cod_ponto"]))
+                    erros.append(u"{0}: O arquivo RINEX do ponto {1} está com o nome de ponto incorreto.".format(pasta, self.csv_data[key]["cod_ponto"]))
+                
                 if self.rinex_data[key]["nr_serie_receptor"] != self.csv_data[key]["nr_serie_receptor"]:
-                    erros.append(u"O arquivo RINEX do ponto {0} está com o nr serie receptor diferente do CSV.".format(self.csv_data[key]["cod_ponto"]))
+                    erros.append(u"{0}: O arquivo RINEX do ponto {1} está com o nr serie receptor diferente do CSV.".format(pasta, self.csv_data[key]["cod_ponto"]))
+                
                 if self.rinex_data[key]["nr_serie_antena"] != self.csv_data[key]["nr_serie_antena"]:
-                    erros.append(u"O arquivo RINEX do ponto {0} está com o nr serie antena diferente do CSV.".format(self.csv_data[key]["cod_ponto"]))
+                    erros.append(u"{0}: O arquivo RINEX do ponto {1} está com o nr serie antena diferente do CSV.".format(pasta, self.csv_data[key]["cod_ponto"]))
+                
                 if self.rinex_data[key]["hora_inicio_rastreio"] != self.csv_data[key]["hora_inicio_rastreio"]:
-                    erros.append(u"O arquivo RINEX do ponto {0} está com a hora inicio rastreio diferente do CSV.".format(self.csv_data[key]["cod_ponto"]))
+                    erros.append(u"{0}: O arquivo RINEX do ponto {1} está com a hora inicio rastreio diferente do CSV.".format(pasta, self.csv_data[key]["cod_ponto"]))
+                
                 if self.rinex_data[key]["hora_fim_rastreio"] != self.csv_data[key]["hora_fim_rastreio"]:
-                    erros.append(u"O arquivo RINEX do ponto {0} está com a hora fim rastreio diferente do CSV.".format(self.csv_data[key]["cod_ponto"]))
+                    erros.append(u"{0}: O arquivo RINEX do ponto {1} está com a hora fim rastreio diferente do CSV.".format(pasta, self.csv_data[key]["cod_ponto"]))
+                
                 if self.rinex_data[key]["data_rastreio_1"] != self.csv_data[key]["data"] or self.rinex_data[key]["data_rastreio_2"] != self.csv_data[key]["data"]:
-                    erros.append(u"O arquivo RINEX do ponto {0} está com a data de rastreio incorreta.".format(self.csv_data[key]["cod_ponto"]))
+                    erros.append(u"{0}: O arquivo RINEX do ponto {1} está com a data de rastreio incorreta.".format(pasta, self.csv_data[key]["cod_ponto"]))
+                
                 if self.rinex_data[key]["altura_antena"] != self.csv_data[key]["altura_antena"]:
-                    erros.append(u"O arquivo RINEX do ponto {0} está com a altura antena diferente do CSV.".format(self.csv_data[key]["cod_ponto"]))
+                    erros.append(u"{0}: O arquivo RINEX do ponto {1} está com a altura antena diferente do CSV.".format(pasta, self.csv_data[key]["cod_ponto"]))
         return erros
 
 if __name__ == '__builtin__':
