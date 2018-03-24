@@ -280,11 +280,11 @@ class EvaluateStructure():
             rinex_info["nr_serie_antena"] = lines[7].split(' ')[0]
             rinex_info["altura_antena"] = lines[9].strip().split(' ')[0]
             aux_inicio = [x for x in lines[12].strip().split(' ') if x]
-            rinex_info["data_rastreio_1"] = "{0}-{1}-{2}".format(aux_inicio[0],aux_inicio[1],aux_inicio[2])
+            rinex_info["data_rastreio_1"] = "{0}-{1}-{2}".format(aux_inicio[0],aux_inicio[1].zfill(2),aux_inicio[2].zfill(2))
             rinex_info["hora_inicio_rastreio"] = "{0}:{1}".format(aux_inicio[3],aux_inicio[4])
             aux_fim = [x for x in lines[13].strip().split(' ') if x]
-            rinex_info["data_rastreio_2"] = "{0}-{1}-{2}".format(aux_inicio[0],aux_inicio[1],aux_inicio[2])
-            rinex_info["hora_fim_rastreio"] = "{0}:{1}".format(aux_inicio[3],aux_inicio[4])
+            rinex_info["data_rastreio_2"] = "{0}-{1}-{2}".format(aux_fim[0],aux_fim[1].zfill(2),aux_fim[2].zfill(2))
+            rinex_info["hora_fim_rastreio"] = "{0}:{1}".format(aux_fim[3],aux_fim[4])
 
         return rinex_info
 
@@ -404,8 +404,14 @@ class EvaluateStructure():
                 if self.rinex_data[key]["data_rastreio_1"] != self.csv_data[key]["data"] or self.rinex_data[key]["data_rastreio_2"] != self.csv_data[key]["data"]:
                     erros.append(u"{0}: O arquivo RINEX do ponto {1} está com a data de rastreio incorreta.".format(pasta, self.csv_data[key]["cod_ponto"]))
                 
-                if self.rinex_data[key]["altura_antena"] != self.csv_data[key]["altura_antena"]:
-                    erros.append(u"{0}: O arquivo RINEX do ponto {1} está com a altura antena diferente do CSV.".format(pasta, self.csv_data[key]["cod_ponto"]))
+                try:
+                    altura_rinex = float(self.rinex_data[key]["altura_antena"].replace(',', '.'))
+                    altura_csv = float(self.csv_data[key]["altura_antena"].replace(',', '.'))
+                    if altura_rinex - altura_csv > 0.01:
+                        erros.append(u"{0}: O arquivo RINEX do ponto {1} está com a altura antena diferente do CSV.".format(pasta, self.csv_data[key]["cod_ponto"]))
+
+                except expression as identifier:
+                    pass
 
                 FMT = '%H:%M'
                 try:
