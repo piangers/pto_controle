@@ -428,6 +428,11 @@ class EvaluateStructure():
                     minutes = tdelta.seconds/60
                     if minutes < 38:
                         erros.append(u"{0} RINEX - O ponto {1} foi medido por menos de 40 min ({2} min).".format(pasta, self.csv_data[key]["cod_ponto"],minutes))
+                    else:
+                        tdelta2 = datetime.strptime(self.csv_data[key]["hora_fim_rastreio"], FMT) - datetime.strptime(self.csv_data[key]["hora_inicio_rastreio"], FMT)
+                        minutes2 = tdelta2.seconds/60    
+                        if abs(minutes - minutes2) > 5:
+                            erros.append(u"{0} - O ponto {1} tem diferença maior que 5 min entre o RINEX e o CSV".format(pasta, self.csv_data[key]["cod_ponto"]))
                 except:
                     erros.append(u"{0} RINEX - O ponto {1} está possui valores inválidos para hora_fim_rastreio ou hora_inicio_rastreio. Contate o Gerente.".format(pasta, self.csv_data[key]["cod_ponto"]))
 
