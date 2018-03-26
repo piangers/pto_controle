@@ -22,7 +22,7 @@ reference:
 ##data=string
 ##medidores=string
 ##pasta=folder
-##fuso=number 3
+##fuso_horario=number -3
 ##log=output file
 
 from os import listdir, sep
@@ -33,12 +33,12 @@ from datetime import datetime
 import sys
 
 class EvaluateStructure():
-    def __init__(self, pasta, medidores, data, fuso):
+    def __init__(self, pasta, medidores, data, fuso_horario):
         self.erros = []
         self.pasta = pasta
         self.medidores = medidores.split(";")
         self.data = data
-        self.fuso = fuso
+        self.fuso_horario = fuso_horario
 
         self.rinex_data = {}
         self.csv_data = {}
@@ -433,8 +433,8 @@ class EvaluateStructure():
                     else:
                         delta_rinex_csv_i = datetime.strptime(self.rinex_data[key]["hora_inicio_rastreio"], FMT) - datetime.strptime(self.csv_data[key]["hora_inicio_rastreio"], FMT)
                         delta_rinex_csv_f = datetime.strptime(self.rinex_data[key]["hora_fim_rastreio"], FMT) - datetime.strptime(self.csv_data[key]["hora_fim_rastreio"], FMT)
-                        minutes_i = delta_rinex_csv_i.seconds/60 - 60*self.fuso 
-                        minutes_f = delta_rinex_csv_f.seconds/60 - 60*self.fuso 
+                        minutes_i = delta_rinex_csv_i.seconds/60 + 60*self.fuso_horario 
+                        minutes_f = delta_rinex_csv_f.seconds/60 + 60*self.fuso_horario 
 
                         if abs(minutes_i) > 5:
                             erros.append(u"{0} - O ponto {1} tem diferença maior que 5 min entre o RINEX e o CSV para a hora_inicio_rastreio".format(pasta, self.csv_data[key]["cod_ponto"]))
@@ -453,7 +453,7 @@ if __name__ == '__builtin__':
     from qgis.gui import QgsMessageBar
     from qgis.core import QgsMessageLog
     from qgis.utils import iface
-    erros = EvaluateStructure(pasta, medidores, data, fuso).evaluate()
+    erros = EvaluateStructure(pasta, medidores, data, fuso_horario).evaluate()
 
     # log erros
     QgsMessageLog.logMessage(
