@@ -22,6 +22,7 @@ reference:
 ##data=string
 ##medidores=string
 ##pasta=folder
+##fuso=number 3
 ##log=output file
 
 from os import listdir, sep
@@ -32,11 +33,12 @@ from datetime import datetime
 import sys
 
 class EvaluateStructure():
-    def __init__(self, pasta, medidores, data):
+    def __init__(self, pasta, medidores, data, fuso):
         self.erros = []
         self.pasta = pasta
         self.medidores = medidores.split(";")
         self.data = data
+        self.fuso = fuso
 
         self.rinex_data = {}
         self.csv_data = {}
@@ -429,10 +431,16 @@ class EvaluateStructure():
                     if minutes < 38:
                         erros.append(u"{0} RINEX - O ponto {1} foi medido por menos de 40 min ({2} min).".format(pasta, self.csv_data[key]["cod_ponto"],minutes))
                     else:
-                        tdelta2 = datetime.strptime(self.csv_data[key]["hora_fim_rastreio"], FMT) - datetime.strptime(self.csv_data[key]["hora_inicio_rastreio"], FMT)
-                        minutes2 = tdelta2.seconds/60    
-                        if abs(minutes - minutes2) > 5:
-                            erros.append(u"{0} - O ponto {1} tem diferença maior que 5 min entre o RINEX e o CSV".format(pasta, self.csv_data[key]["cod_ponto"]))
+                        delta_rinex_csv_i = datetime.strptime(self.rinex_data[key]["hora_inicio_rastreio"], FMT) - datetime.strptime(self.csv_data[key]["hora_inicio_rastreio"], FMT)
+                        delta_rinex_csv_f = datetime.strptime(self.rinex_data[key]["hora_fim_rastreio"], FMT) - datetime.strptime(self.csv_data[key]["hora_fim_rastreio"], FMT)
+                        minutes_i = delta_rinex_csv_i.seconds/60 - 60*self.fuso 
+                        minutes_f = delta_rinex_csv_f.seconds/60 - 60*self.fuso 
+
+                        if abs(minutes_i) > 5:
+                            erros.append(u"{0} - O ponto {1} tem diferença maior que 5 min entre o RINEX e o CSV para a hora_inicio_rastreio".format(pasta, self.csv_data[key]["cod_ponto"]))
+                        if abs(minutes_f) > 5:
+                            erros.append(u"{0} - O ponto {1} tem diferença maior que 5 min entre o RINEX e o CSV para a hora_fim_rastreio".format(pasta, self.csv_data[key]["cod_ponto"]))
+
                 except:
                     erros.append(u"{0} RINEX - O ponto {1} está possui valores inválidos para hora_fim_rastreio ou hora_inicio_rastreio. Contate o Gerente.".format(pasta, self.csv_data[key]["cod_ponto"]))
 
@@ -445,7 +453,7 @@ if __name__ == '__builtin__':
     from qgis.gui import QgsMessageBar
     from qgis.core import QgsMessageLog
     from qgis.utils import iface
-    erros = EvaluateStructure(pasta, medidores, data).evaluate()
+    erros = EvaluateStructure(pasta, medidores, data, fuso).evaluate()
 
     # log erros
     QgsMessageLog.logMessage(
@@ -469,5 +477,5 @@ if __name__ == '__builtin__':
 
 
 if __name__ == '__main__':
-    erros = EvaluateStructure(sys.argv[0], sys.argv[1], sys.argv[2]).evaluate()
+    erros = EvaluateStructure(sys.argv[0], sys.argv[1], sys.argv[2], sys.argv[3]).evaluate()
     print(erros)
