@@ -191,7 +191,7 @@ class EvaluateStructure():
 
         columns = ["cod_ponto", "operador_levantamento", "data", "hora_inicio_rastreio", "hora_fim_rastreio",
                    "taxa_gravacao", "altura_antena", "altura_objeto", "nr_serie_antena", "nr_serie_receptor", "tipo_medicao",
-                   "materializado", "med_altura", "metodo_implantacao", "referencia_implantacao"]
+                   "materializado", "med_altura", "metodo_implantacao", "referencia_implantacao", "observacao"]
         ptos = []
 
         with open(join(pasta, nome), 'rb') as csv_file:
