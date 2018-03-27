@@ -3,7 +3,7 @@
 /***************************************************************************
 Name                 : Verifica estrutura Ponto de Controle
 Description          : Verifica estrutura de pasta padrão dos pontos de controle (somente PPP)
-Version              : 1.3.0
+Version              : 1.3.1
 Date                 : 2018-03-19
 copyright            : 1ºCGEO / DSG
 email                : diniz.felipe@eb.mil.br
@@ -418,7 +418,7 @@ class EvaluateStructure():
                 try:
                     altura_rinex = float(self.rinex_data[key]["altura_antena"].replace(',', '.'))
                     altura_csv = float(self.csv_data[key]["altura_antena"].replace(',', '.'))
-                    if altura_rinex - altura_csv > 0.01:
+                    if abs(altura_rinex - altura_csv) > 0.01:
                         erros.append(u"{0}: O arquivo RINEX do ponto {1} está com a altura antena diferente do CSV.".format(pasta, self.csv_data[key]["cod_ponto"]))
 
                 except expression as identifier:
