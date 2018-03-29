@@ -3,7 +3,7 @@
 /***************************************************************************
 Name                 : Verifica estrutura Ponto de Controle
 Description          : Verifica estrutura de pasta padrão dos pontos de controle (somente PPP)
-Version              : 1.4.1
+Version              : 1.4.2
 Date                 : 2018-03-19
 copyright            : 1ºCGEO / DSG
 email                : diniz.felipe@eb.mil.br
@@ -409,11 +409,11 @@ class EvaluateStructure():
         erros = []
         for key in self.rinex_data:
             if self.rinex_data[key]['modelo_receptor'] != 'TRIMBLE 5700II':
-                erros.append(u"{0}: O arquivo RINEX do ponto {1} está com o modelo incorreto do receptor (é {2} deveria ser TRIMBLE 5700II)".format(pasta, self.rinex_data[key]["cod_ponto"], self.rinex_data[key]["modelo_receptor"]))           
+                erros.append(u"{0}: O arquivo RINEX do ponto {1} está com o modelo incorreto do receptor (é {2} deveria ser TRIMBLE 5700II)".format(pasta, self.rinex_data[key]["cod_ponto_1"], self.rinex_data[key]["modelo_receptor"]))           
             if self.rinex_data[key]['modelo_antena'] != 'TRM39105.00':
-                erros.append(u"{0}: O arquivo RINEX do ponto {1} está com o modelo incorreto de antena (é {2} deveria ser TRM39105.00)".format(pasta, self.rinex_data[key]["cod_ponto"], self.rinex_data[key]["modelo_antena"]))           
+                erros.append(u"{0}: O arquivo RINEX do ponto {1} está com o modelo incorreto de antena (é {2} deveria ser TRM39105.00)".format(pasta, self.rinex_data[key]["cod_ponto_1"], self.rinex_data[key]["modelo_antena"]))           
             if self.rinex_data[key]['modelo_none']:
-                erros.append(u"{0}: O arquivo RINEX do ponto {1} contém NONE no modelo da antena.".format(pasta, self.rinex_data[key]["cod_ponto"]))
+                erros.append(u"{0}: O arquivo RINEX do ponto {1} contém NONE no modelo da antena.".format(pasta, self.rinex_data[key]["cod_ponto_1"]))
 
         for key in self.csv_data:
             if key in self.rinex_data:
