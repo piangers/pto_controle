@@ -3,7 +3,7 @@
 /***************************************************************************
 Name                 : Verifica estrutura Ponto de Controle
 Description          : Verifica estrutura de pasta padrão dos pontos de controle (somente PPP)
-Version              : 1.3.1
+Version              : 1.4.1
 Date                 : 2018-03-19
 copyright            : 1ºCGEO / DSG
 email                : diniz.felipe@eb.mil.br
@@ -288,7 +288,13 @@ class EvaluateStructure():
             rinex_info["cod_ponto_1"] = lines[3].split(' ')[0]
             rinex_info["cod_ponto_2"] = lines[4].split(' ')[0]
             rinex_info["nr_serie_receptor"] = lines[6].split(' ')[0]
+            rinex_info["modelo_receptor"] = [x for x in lines[6].split('  ') if x][1]
             rinex_info["nr_serie_antena"] = lines[7].split(' ')[0]
+            if "NONE" in lines[7]:
+                rinex_info["modelo_none"] = True
+            else:
+                rinex_info["modelo_none"] = False    
+            rinex_info["modelo_antena"] = [x for x in lines[7].split('  ') if x][1]
             rinex_info["altura_antena"] = lines[9].strip().split(' ')[0]
             aux_inicio = [x for x in lines[12].strip().split(' ') if x]
             rinex_info["data_rastreio_1"] = "{0}-{1}-{2}".format(aux_inicio[0],aux_inicio[1].zfill(2),aux_inicio[2].zfill(2))
@@ -401,6 +407,14 @@ class EvaluateStructure():
 
     def compare_csv_rinex(self, pasta):
         erros = []
+        for key in self.rinex_data:
+            if self.rinex_data[key]['modelo_receptor'] != 'TRIMBLE 5700II':
+                erros.append(u"{0}: O arquivo RINEX do ponto {1} está com o modelo incorreto do receptor (é {2} deveria ser TRIMBLE 5700II)".format(pasta, self.rinex_data[key]["cod_ponto"], self.rinex_data[key]["modelo_receptor"]))           
+            if self.rinex_data[key]['modelo_antena'] != 'TRM39105.00':
+                erros.append(u"{0}: O arquivo RINEX do ponto {1} está com o modelo incorreto de antena (é {2} deveria ser TRM39105.00)".format(pasta, self.rinex_data[key]["cod_ponto"], self.rinex_data[key]["modelo_antena"]))           
+            if self.rinex_data[key]['modelo_none']:
+                erros.append(u"{0}: O arquivo RINEX do ponto {1} contém NONE no modelo da antena.".format(pasta, self.rinex_data[key]["cod_ponto"]))
+
         for key in self.csv_data:
             if key in self.rinex_data:
                 if self.rinex_data[key]["cod_ponto_1"] != self.csv_data[key]["cod_ponto"] or self.rinex_data[key]["cod_ponto_2"] != self.csv_data[key]["cod_ponto"]:
@@ -477,5 +491,8 @@ if __name__ == '__builtin__':
 
 
 if __name__ == '__main__':
-    erros = EvaluateStructure(sys.argv[0], sys.argv[1], sys.argv[2], sys.argv[3]).evaluate()
-    print(erros)
+    if len(sys.argv) >= 4:
+        erros = EvaluateStructure(sys.argv[0], sys.argv[1], sys.argv[2], sys.argv[3]).evaluate()
+        print(erros)
+    else:
+        print(u'Parâmetros incorretos!')
