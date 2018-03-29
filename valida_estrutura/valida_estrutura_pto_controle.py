@@ -3,8 +3,8 @@
 /***************************************************************************
 Name                 : Verifica estrutura Ponto de Controle
 Description          : Verifica estrutura de pasta padrão dos pontos de controle (somente PPP)
-Version              : 1.4.2
-Date                 : 2018-03-19
+Version              : 1.4.3
+Date                 : 2018-03-29
 copyright            : 1ºCGEO / DSG
 email                : diniz.felipe@eb.mil.br
 reference:
@@ -288,13 +288,13 @@ class EvaluateStructure():
             rinex_info["cod_ponto_1"] = lines[3].split(' ')[0]
             rinex_info["cod_ponto_2"] = lines[4].split(' ')[0]
             rinex_info["nr_serie_receptor"] = lines[6].split(' ')[0]
-            rinex_info["modelo_receptor"] = [x for x in lines[6].split('  ') if x][1]
-            rinex_info["nr_serie_antena"] = lines[7].split(' ')[0]
+            rinex_info["modelo_receptor"] = [x for x in lines[6].split('  ') if x][1].strip()
+            rinex_info["nr_serie_antena"] = lines[7].split(' ')[0].strip()
             if "NONE" in lines[7]:
                 rinex_info["modelo_none"] = True
             else:
                 rinex_info["modelo_none"] = False    
-            rinex_info["modelo_antena"] = [x for x in lines[7].split('  ') if x][1]
+            rinex_info["modelo_antena"] = [x for x in lines[7].split('  ') if x][1].strip()
             rinex_info["altura_antena"] = lines[9].strip().split(' ')[0]
             aux_inicio = [x for x in lines[12].strip().split(' ') if x]
             rinex_info["data_rastreio_1"] = "{0}-{1}-{2}".format(aux_inicio[0],aux_inicio[1].zfill(2),aux_inicio[2].zfill(2))
