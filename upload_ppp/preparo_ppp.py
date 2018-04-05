@@ -30,24 +30,19 @@ def cria_pastas(pasta):
         if root.split('\\')[-1] == nome_pasta:
             
             for arquivo in files:
-                if os.path.isdir('6_Processamento_PPP'):
-                    pass
-                else:
+                if not os.path.isdir('6_Processamento_PPP'):
                     os.mkdir('6_Processamento_PPP') # cria pasta caso nao exista
                     print ('Pasta criada com sucesso!')
                 
-                if os.path.isdir('7_Processamento_TBC_RBMC'):
-                    pass
-                else:
+                if not os.path.isdir('7_Processamento_TBC_RBMC'):
                     os.mkdir('7_Processamento_TBC_RBMC') # cria pasta caso nao exista
                     print ('Pasta criada com sucesso!')
 
         '''     if not os.path.exists(caminho):
-                os.makedirs(caminho)
+                    os.makedirs(caminho)
                 elif not os.path.isdir(caminho):
                 raise IOError(caminho + " nao eh um diretorio!")'''
         
-    
 
 
 
