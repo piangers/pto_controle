@@ -90,14 +90,16 @@ def criaCSV(nome_csv, ppp_list, tbc_list):
     merged = merge_lists(ppp_list, tbc_list, 'nome_ponto')
     erros = []
     with open(nome_csv, 'w') as f:
-        f.write('nome_ponto,PPP_N,PPP_E,PPP_h,PPP_H,TBC_N,TBC_E,TBC_h,Delta_N,Delta_E,Delta_h,Delta_EN\n')
+        f.write('nome_ponto;PPP_N;PPP_E;PPP_h;PPP_H;TBC_N;TBC_E;TBC_h;Delta_N;Delta_E;Delta_h;Delta_EN\n')
         for pto in merged:
             try:
                 pto["Delta_E"] = round(float(pto[u'PPP_E']) - float(pto[u'TBC_E']),3)
                 pto["Delta_N"] = round(float(pto[u'PPP_N']) - float(pto[u'TBC_N']),3)
                 pto["Delta_h"] = round(float(pto[u'PPP_h']) - float(pto[u'TBC_h']),3)
                 pto["Delta_EN"] = round(math.sqrt(pto["Delta_E"]**2 + pto["Delta_N"]**2),3)
-                f.write('{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}\n'.format(pto["nome_ponto"], pto["PPP_N"], pto["PPP_E"], pto["PPP_h"], pto["PPP_H"], pto["TBC_N"], pto["TBC_E"], pto["TBC_h"], pto["Delta_N"], pto["Delta_E"], pto["Delta_h"], pto["Delta_EN"]))
+                for key in pto:
+                    pto[key] = "{0}".format(pto[key]).replace('.', ',')
+                f.write('{0};{1};{2};{3};{4};{5};{6};{7};{8};{9};{10};{11}\n'.format(pto["nome_ponto"], pto["PPP_N"], pto["PPP_E"], pto["PPP_h"], pto["PPP_H"], pto["TBC_N"], pto["TBC_E"], pto["TBC_h"], pto["Delta_N"], pto["Delta_E"], pto["Delta_h"], pto["Delta_EN"]))
             except:
                 erros.append(pto["nome_ponto"])
     return erros
