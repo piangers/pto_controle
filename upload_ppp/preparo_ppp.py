@@ -29,7 +29,7 @@ def cria_pastas(pasta):
     for root, dirs in os.walk(pasta):
         if root.split('\\')[-1] == nome_pasta:
             
-            for arquivo in files:
+            for di in dirs:
                 if not os.path.isdir('6_Processamento_PPP'):
                     os.mkdir('6_Processamento_PPP') # cria pasta caso nao exista
                     print ('Pasta criada com sucesso!')
