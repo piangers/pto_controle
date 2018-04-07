@@ -3,7 +3,7 @@
 /***************************************************************************
 Name                 : Organiza arquivos processados do PPP
 Description          : Descompacta e distribui na estrutura de pastas os arquivos processados do PPP
-Version              : 0.1
+Version              : 1.0
 copyright            : 1ºCGEO / DSG
 reference:
  ***************************************************************************/
