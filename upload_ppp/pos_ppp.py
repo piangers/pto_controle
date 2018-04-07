@@ -35,14 +35,20 @@ def organizePPP(estrutura_pasta, pasta_ppp):
             if "6_Processamento_PPP" in dirs:
                 ptos_estrutura[root.split('\\')[-1]] = os.path.join(root,"6_Processamento_PPP")
             else:
-              print u"O padrao de pasta para o ponto {0} esta incorreto (nao possui 6_Processamento_PPP)".format(root.split('\\')[-1])
+                print u"O padrao de pasta para o ponto {0} esta incorreto (nao possui 6_Processamento_PPP)".format(root.split('\\')[-1])
     
     for zip_pto in zipfiles:
         if zip_pto in ptos_estrutura:
-            zip_ref = zipfile.ZipFile(zipfiles[zip_pto], 'r')
-            zip_ref.extractall(ptos_estrutura[zip_pto])
-            zip_ref.close()
-            #print os.listdir(ptos_estrutura[zip_pto])
+            if len(os.listdir(ptos_estrutura[zip_pto])) == 0:
+                zip_ref = zipfile.ZipFile(zipfiles[zip_pto], 'r')
+                zip_ref.extractall(ptos_estrutura[zip_pto])
+                zip_ref.close()
+                if len(os.listdir(ptos_estrutura[zip_pto])) == 1:
+                    source = os.path.join(ptos_estrutura[zip_pto], os.listdir(ptos_estrutura[zip_pto])[0])
+                    if os.path.isdir(source):
+                        for f in os.listdir(source):
+                            shutil.move(os.path.join(source,f), ptos_estrutura[zip_pto])
+                        shutil.rmtree(source)
 
 
     print u"Pontos nao encontrados na estrutura:"
