@@ -100,8 +100,8 @@ def criaCSV(nome_csv, ppp_list, tbc_list):
 
 
 if __name__ == '__builtin__':
-    tbc = lerTBC(pasta_tbc)
-    ppp = lerPPP(pasta_ppp)
+    tbc = lerTBC(pasta_dados)
+    ppp = lerPPP(pasta_dados)
     criaCSV(csv_file, ppp,tbc)
 
 if __name__ == '__main__':

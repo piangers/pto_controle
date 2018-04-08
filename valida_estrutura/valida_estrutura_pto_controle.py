@@ -490,7 +490,7 @@ if __name__ == '__builtin__':
 
 if __name__ == '__main__':
     if len(sys.argv) >= 4:
-        erros = EvaluateStructure(sys.argv[0], sys.argv[1], sys.argv[2], sys.argv[3]).evaluate()
+        erros = EvaluateStructure(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]).evaluate()
         print(erros)
     else:
         print(u'Parâmetros incorretos!')
