@@ -62,7 +62,7 @@ zips.forEach(zip => {
     await t
       .typeText(
         Selector("input").withAttribute("name", "email"),
-        "diniz.ime@gmail.com"
+        process.argv[8]
       )
       .setFilesToUpload(Selector("input").withAttribute("name", "arquivo"), zip)
       .click(Selector("input").withAttribute("value", "Processar"))
