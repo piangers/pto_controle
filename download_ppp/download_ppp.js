@@ -45,41 +45,35 @@ const removeDownloaded = dir => {
   };
 };
 
-fixture("Download all");
+fixture("Download PPP em lote");
 
 const page =
   "https://www.ibge.gov.br/geociencias-novoportal/informacoes-sobre-posicionamento-geodesico/servicos-para-posicionamento-geodesico/16334-servico-online-para-pos-processamento-de-dados-gnss-ibge-ppp.html?=&t=processar-os-dados";
 
-let zips = findPPP("D:\\2018-04-06");
+let zips = findPPP(process.argv[6]);
 
-zips = zips.filter(
-  removeDownloaded("C:\\Users\\Diniz\\Downloads\\ppp_2018-03-06")
-);
+zips = zips.filter(removeDownloaded(process.argv[7]));
 
 zips.forEach(zip => {
-  test.page(page)(
-    "Download: " +
-      zip.split("\\")[pto_path.split("\\").length - 1].slice(0, -4),
-    async t => {
-      await t
-        .typeText(
-          Selector("input").withAttribute("name", "email"),
-          "diniz.ime@gmail.com"
-        )
-        .setFilesToUpload(
-          Selector("input").withAttribute("name", "arquivo"),
-          zip
-        )
-        .click(Selector("input").withAttribute("value", "Processar"))
-        .wait(10000);
+  let name =
+    "Download: " + zip.split("\\")[zip.split("\\").length - 1].slice(0, -4);
 
-      await t
-        .switchToIframe("#iframe_resultado")
-        .wait(30000)
-        .click(Selector("a"))
-        .wait(10000);
-    }
-  );
+  test.page(page)(name, async t => {
+    await t
+      .typeText(
+        Selector("input").withAttribute("name", "email"),
+        "diniz.ime@gmail.com"
+      )
+      .setFilesToUpload(Selector("input").withAttribute("name", "arquivo"), zip)
+      .click(Selector("input").withAttribute("value", "Processar"))
+      .wait(10000);
+
+    await t
+      .switchToIframe("#iframe_resultado")
+      .wait(30000)
+      .click(Selector("a"))
+      .wait(10000);
+  });
 });
 
 //npm install -g testcafe
