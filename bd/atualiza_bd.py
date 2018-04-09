@@ -4,9 +4,7 @@
 Name                 : Atualiza banco de dados de ponto de controle
 Description          : Atualiza a situação dos pontos medidos no banco de dados de ponto de controle
 Version              : 1.0
-Date                 : 2018-03-19
 copyright            : 1ºCGEO / DSG
-email                : diniz.felipe@eb.mil.br
 reference:
  ***************************************************************************/
 /***************************************************************************
@@ -97,10 +95,14 @@ if __name__ == '__builtin__':
 
 
 if __name__ == '__main__':
-    atualiza_db = AtualizaBD(sys.argv[1], sys.argv[2],
-                             sys.argv[3], sys.argv[4],
-                             sys.argv[5], sys.argv[6])
+    if len(sys.argv) >= 6:
+        atualiza_db = AtualizaBD(sys.argv[1], sys.argv[2],
+                                sys.argv[3], sys.argv[4],
+                                sys.argv[5], sys.argv[6])
 
-    pontos = atualiza_db.getPontosFromCSV()
-    total = atualiza_db.atualiza(pontos)
-    print u'Foram atualizados {0} pontos de controle!'.format(total)
+        pontos = atualiza_db.getPontosFromCSV()
+        total = atualiza_db.atualiza(pontos)
+        print u'Foram atualizados {0} pontos de controle!'.format(total)
+    else:
+        print(u'Parametros incorretos!')
+

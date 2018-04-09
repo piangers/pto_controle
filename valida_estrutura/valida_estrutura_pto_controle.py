@@ -4,9 +4,7 @@
 Name                 : Verifica estrutura Ponto de Controle
 Description          : Verifica estrutura de pasta padrão dos pontos de controle (somente PPP)
 Version              : 1.4.3
-Date                 : 2018-03-29
 copyright            : 1ºCGEO / DSG
-email                : diniz.felipe@eb.mil.br
 reference:
  ***************************************************************************/
 /***************************************************************************
@@ -23,6 +21,7 @@ reference:
 ##medidores=string
 ##pasta=folder
 ##fuso_horario=number -3
+##ignora_processamento=boolean False
 ##log=output file
 
 from os import listdir, sep
@@ -31,14 +30,16 @@ from re import search
 import csv
 from datetime import datetime
 import sys
+import codecs
 
 class EvaluateStructure():
-    def __init__(self, pasta, medidores, data, fuso_horario):
+    def __init__(self, pasta, medidores, data, fuso_horario, ignora_processamento):
         self.erros = []
         self.pasta = pasta
         self.medidores = medidores.split(";")
         self.data = data
-        self.fuso_horario = fuso_horario
+        self.fuso_horario = int(fuso_horario)
+        self.ignora_processamento = ignora_processamento == "True"
 
         self.rinex_data = {}
         self.csv_data = {}
@@ -53,8 +54,8 @@ class EvaluateStructure():
         else:
             for p in subpastas:
                 if p not in [u"{0}_{1}".format(m, self.data) for m in self.medidores]:
-                    self.erros.append(
-                        u"A pasta {0}{1}{2} não segue o padrão de nomenclatura (medidor_YYYY-MM-DD).".format(self.pasta, sep, p))
+                    if not self.ignora_processamento or (p != "_Processamento_RBMC" and p != "_Revisao"):
+                        self.erros.append(u"A pasta {0}{1}{2} não segue o padrão de nomenclatura (medidor_YYYY-MM-DD).".format(self.pasta, sep, p))
                 else:
                     erros_pasta = self.evaluate_first_level(
                         join(self.pasta, p))
@@ -91,12 +92,16 @@ class EvaluateStructure():
             erros.append(u"A pasta {0} deveria conter o arquivo CSV de informações dos pontos do dia (metadados_{1}_{2}.csv).".format(
                 pasta, medidor, data))
 
-        if len(set(files).difference([csv_name])) > 0:
+        if len(set(files).difference([csv_name, "Thumbs.db"])) > 0:
             for f in set(files).difference([csv_name]):
                 erros.append(
                     u"A pasta {0} não deveria conter o arquivo {1}.".format(pasta, f))
 
         subpastas = [f for f in listdir(pasta) if isdir(join(pasta, f))]
+
+        if self.ignora_processamento and '_Processamento_TBC_{0}_{1}'.format(medidor, data) in subpastas:
+            subpastas.remove('_Processamento_TBC_{0}_{1}'.format(medidor, data))
+
         if len(subpastas) < 1:
             erros.append(u"A pasta {0} deveria ter subpastas.".format(pasta))
         else:
@@ -120,6 +125,13 @@ class EvaluateStructure():
         erros = []
         erros += self.no_files(pasta)
         subpastas = [f for f in listdir(pasta) if isdir(join(pasta, f))]
+
+        if self.ignora_processamento:
+            if "6_Processamento_PPP" in subpastas:
+                subpastas.remove("6_Processamento_PPP")
+            if "7_Processamento_TBC_RBMC" in subpastas:
+                subpastas.remove("7_Processamento_TBC_RBMC")
+
         pastas_incorretas = set(subpastas).difference(
             ["1_Formato_Nativo", "2_RINEX", "3_Foto_Rastreio", "4_Croqui", "5_Foto_Auxiliar"])
         pastas_faltando = set(["1_Formato_Nativo", "2_RINEX",
@@ -160,8 +172,13 @@ class EvaluateStructure():
             join(pasta, f)) and f != "Thumbs.db"]
         if len(files) > 0:
             for f in files:
-                erros.append(
-                    u"A pasta {0} não deve conter o arquivo {1}.".format(pasta, f))
+                try:
+                    erros.append(
+                        u"A pasta {0} nao deve conter o arquivo {1}.".format(pasta, f))
+                except:
+                    print f
+                    pass
+
         return erros
 
     @staticmethod
@@ -171,7 +188,7 @@ class EvaluateStructure():
         if len(subpastas) > 0:
             for s in subpastas:
                 erros.append(
-                    u"A pasta {0} não deve conter a subpasta {1}.".format(pasta, s))
+                    u"A pasta {0} nao deve conter a subpasta {1}.".format(pasta, s))
         return erros
 
     @staticmethod
@@ -183,8 +200,7 @@ class EvaluateStructure():
         else:
             return False
 
-    @staticmethod
-    def evaluate_csv(pasta, nome):
+    def evaluate_csv(self, pasta, nome):
         erros = []
 
         data = nome[:-4].split("_")[-1]
@@ -199,6 +215,7 @@ class EvaluateStructure():
             headers = csv_reader.fieldnames
             if len(set(headers).difference(columns)) > 0:
                 for col in set(headers).difference(columns):
+                    print pasta, col
                     erros.append(
                         u"{0} CSV - A coluna {1} está presente no CSV porém não é padrão.".format(pasta, col))
             if len(set(columns).difference(headers)) > 0:
@@ -208,13 +225,13 @@ class EvaluateStructure():
 
             for row in csv_reader:
                 if "hora_inicio_rastreio" in row and "hora_fim_rastreio" in row:
-                    FMT = '%H:%M'
                     try:
-                        tdelta = datetime.strptime(row["hora_fim_rastreio"], FMT) - datetime.strptime(row["hora_inicio_rastreio"], FMT)
+                        tdelta = self.parse_date(row["hora_fim_rastreio"]) - self.parse_date(row["hora_inicio_rastreio"])
                         minutes = tdelta.seconds/60
                         if minutes < 38:
                             erros.append(u"{0} CSV - O ponto {1} foi medido por menos de 40 min ({2} min).".format(pasta, row["cod_ponto"],minutes))
-                    except:
+                    except Exception as e:
+                        print(e)
                         erros.append(u"{0} CSV - O ponto {1} está possui valores inválidos para hora_fim_rastreio ou hora_inicio_rastreio.".format(pasta, row["cod_ponto"]))
                 if "altura_antena" in row:
                     try:
@@ -305,6 +322,16 @@ class EvaluateStructure():
 
         return rinex_info
 
+    @staticmethod
+    def parse_date(text):
+        for fmt in ('%H:%M', '%H:%M:00'):
+            try:
+                return datetime.strptime(text, fmt)
+            except ValueError:
+                pass
+        raise ValueError('no valid date format found')
+
+
     def evaluate_formato_nativo(self, pasta, pto):
         erros = []
         erros += self.no_folders(pasta)
@@ -328,6 +355,10 @@ class EvaluateStructure():
         erros += self.no_folders(pasta)
         ano = data[2:4]
         files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
+
+        if self.ignora_processamento and '{0}.zip'.format(pto) in files:
+            files.remove('{0}.zip'.format(pto))
+
         arquivos_incorretos = set(files).difference(
             ["{0}.{1}n".format(pto, ano), "{0}.{1}o".format(pto, ano)])
         arquivos_faltando = set(
@@ -372,12 +403,11 @@ class EvaluateStructure():
         erros = []
         erros += self.no_folders(pasta)
         files = [f for f in listdir(pasta) if isfile(join(pasta, f))]
-        fotos_ok = []
         foto_regex = "^{0}_\d+_FOTO_AUX.(jpg|JPG)$".format(pto)
 
         for f in files:
             if search(foto_regex, f):
-                fotos_ok.append(f)
+                pass
             elif f == "Thumbs.db":
                 pass
             else:
@@ -438,15 +468,15 @@ class EvaluateStructure():
                 except expression as identifier:
                     pass
 
-                FMT = '%H:%M'
                 try:
-                    tdelta = datetime.strptime(self.rinex_data[key]["hora_fim_rastreio"], FMT) - datetime.strptime(self.rinex_data[key]["hora_inicio_rastreio"], FMT)
+                    tdelta = self.parse_date(self.rinex_data[key]["hora_fim_rastreio"]) - self.parse_date(self.rinex_data[key]["hora_inicio_rastreio"])
                     minutes = tdelta.seconds/60
                     if minutes < 38:
                         erros.append(u"{0} RINEX - O ponto {1} foi medido por menos de 40 min ({2} min).".format(pasta, self.csv_data[key]["cod_ponto"],minutes))
                     else:
-                        delta_rinex_csv_i = datetime.strptime(self.rinex_data[key]["hora_inicio_rastreio"], FMT) - datetime.strptime(self.csv_data[key]["hora_inicio_rastreio"], FMT)
-                        delta_rinex_csv_f = datetime.strptime(self.rinex_data[key]["hora_fim_rastreio"], FMT) - datetime.strptime(self.csv_data[key]["hora_fim_rastreio"], FMT)
+                        delta_rinex_csv_i = self.parse_date(self.rinex_data[key]["hora_inicio_rastreio"]) - self.parse_date(self.csv_data[key]["hora_inicio_rastreio"])
+                        delta_rinex_csv_f = self.parse_date(self.rinex_data[key]["hora_fim_rastreio"]) - self.parse_date(self.csv_data[key]["hora_fim_rastreio"])
+
                         minutes_i = delta_rinex_csv_i.seconds/60 + 60*self.fuso_horario 
                         minutes_f = delta_rinex_csv_f.seconds/60 + 60*self.fuso_horario 
 
@@ -455,7 +485,8 @@ class EvaluateStructure():
                         if abs(minutes_f) > 5:
                             erros.append(u"{0} - O ponto {1} tem diferença maior que 5 min entre o RINEX e o CSV para a hora_fim_rastreio".format(pasta, self.csv_data[key]["cod_ponto"]))
 
-                except:
+                except Exception as e:
+                    print(e)
                     erros.append(u"{0} RINEX - O ponto {1} está possui valores inválidos para hora_fim_rastreio ou hora_inicio_rastreio. Contate o Gerente.".format(pasta, self.csv_data[key]["cod_ponto"]))
 
             else:
@@ -467,7 +498,7 @@ if __name__ == '__builtin__':
     from qgis.gui import QgsMessageBar
     from qgis.core import QgsMessageLog
     from qgis.utils import iface
-    erros = EvaluateStructure(pasta, medidores, data, fuso_horario).evaluate()
+    erros = EvaluateStructure(pasta, medidores, data, fuso_horario, ignora_processamento).evaluate()
 
     # log erros
     QgsMessageLog.logMessage(
@@ -491,8 +522,11 @@ if __name__ == '__builtin__':
 
 
 if __name__ == '__main__':
-    if len(sys.argv) >= 4:
-        erros = EvaluateStructure(sys.argv[0], sys.argv[1], sys.argv[2], sys.argv[3]).evaluate()
-        print(erros)
+    if len(sys.argv) == 7:
+        erros = EvaluateStructure(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]).evaluate()
+        with codecs.open(sys.argv[6], 'w', 'utf-8') as f:
+            for erro in erros:
+                f.write(erro)
+                f.write("\n")
     else:
         print(u'Parâmetros incorretos!')

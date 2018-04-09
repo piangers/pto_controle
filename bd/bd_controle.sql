@@ -26,6 +26,7 @@ CREATE TABLE controle.ponto_controle_p(
   medidor varchar(255), 
   data_medicao timestamp with time zone,
 	tipo_situacao_id INTEGER NOT NULL REFERENCES controle.tipo_situacao (id),
+	equipe_medicao varchar(255),
 	geom geometry(POINT, 31982),
 	CONSTRAINT ponto_controle_p_pk PRIMARY KEY (id)
 	 WITH (FILLFACTOR = 80)

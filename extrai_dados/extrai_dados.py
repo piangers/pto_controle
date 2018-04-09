@@ -3,7 +3,7 @@
 /***************************************************************************
 Name                 : Extrai dados processamento PPP e TBC
 Description          : Extrai dados do relatório de processamento em PDF do PPP e TBC e realiza o controle de qualidade
-Version              : 0.1
+Version              : 1.0
 copyright            : 1ºCGEO / DSG
 reference:
  ***************************************************************************/
@@ -22,13 +22,11 @@ reference:
 
 import PyPDF2
 import os 
-import os.path
 import math
 import sys
 from re import search
 
 def lerPPP(pasta):
-    # caminho para os pdfs
     pdfs = []
     for root, dirs, files in os.walk(pasta):
         if root.split('\\')[-1] == "6_Processamento_PPP" and len(files) > 0:
@@ -38,10 +36,8 @@ def lerPPP(pasta):
 
     conteudo_list = []
     for pdf in pdfs:
-        # abre o arquivo pdf e cria um objeto reader
         with open(pdf, "rb") as f:
-            conteudo = PyPDF2.PdfFileReader(f)       # objeto que representa o documento
-            # Itera pelas páginas do documento
+            conteudo = PyPDF2.PdfFileReader(f)
             ppp = {}
             text = conteudo.getPage(0).extractText() 
             ppp["PPP_N"] = text.split('\n')[74].replace(',', '.')
@@ -49,12 +45,10 @@ def lerPPP(pasta):
             ppp["PPP_h"] = text.split('\n')[73].replace(',', '.')
             ppp["PPP_H"] = text.split('\n')[108].replace(',', '.')
             ppp["nome_ponto"] = text.split('\n')[2].split(':')[1]
-            # fecha o arquivo
             conteudo_list.append(ppp)
     return conteudo_list
 
 def lerTBC(pasta):
-    # caminho para os pdfs
     pdfs = []
     for root, dirs, files in os.walk(pasta):
         if root.split('\\')[-1] == "7_Processamento_TBC_RBMC" and len(files) > 0:
@@ -106,15 +100,15 @@ def criaCSV(nome_csv, ppp_list, tbc_list):
 
 
 if __name__ == '__builtin__':
-    tbc = lerTBC(pasta_tbc)
-    ppp = lerPPP(pasta_ppp)
+    tbc = lerTBC(pasta_dados)
+    ppp = lerPPP(pasta_dados)
     criaCSV(csv_file, ppp,tbc)
 
 if __name__ == '__main__':
     if len(sys.argv) >= 3:
         tbc = lerTBC(sys.argv[1])
         ppp = lerPPP(sys.argv[1])
-        print criaCSV(sys.argv[2], ppp,tbc)    
+        print criaCSV(sys.argv[2], ppp,tbc)
     else:
         print(u'Parametros incorretos!')
 
