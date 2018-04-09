@@ -20,18 +20,28 @@ reference:
 ##pasta_dados=folder
 
 import os 
-from re import search
+from re import search, compile
 import zipfile
 import sys
 
 def criaPastas(pasta):
-    pto_regex = "^(RS|PR|SC|SP)-(HV|Base)-[1-9]+[0-9]*$"
+    pto_regex =  compile("^(RS|PR|SC|SP)-(HV|Base)-[1-9]+[0-9]*$")
+    date_regex =  compile("\d{4}-\d{2}-\d{2}")
     for root, dirs, files in os.walk(pasta):
-        if search(pto_regex, root.split('\\')[-1]):
+        if pto_regex.match(root.split('\\')[-1]):
             if not "6_Processamento_PPP" in dirs:
                 os.mkdir(os.path.join(root, "6_Processamento_PPP"))
             if not "7_Processamento_TBC_RBMC" in dirs:
                 os.mkdir(os.path.join(root, "7_Processamento_TBC_RBMC"))
+        if date_regex.match(root.split('\\')[-1].split("_")[-1]) and root.split('\\')[-1].split("_")[-1] == root.split('\\')[-2]:
+            nome_pasta = "_Processamento_TBC_{0}".format(root.split('\\')[-1])
+            if not nome_pasta in dirs:
+                os.mkdir(os.path.join(root, nome_pasta))        
+        if date_regex.match(root.split('\\')[-1]):
+            if not "_Processamento_RBMC" in dirs:
+                os.mkdir(os.path.join(root, "_Processamento_RBMC"))            
+            if not "_Revisao" in dirs:
+                os.mkdir(os.path.join(root, "_Revisao"))         
 
 def zipaPPP(pasta):
     for root, dirs, files in os.walk(pasta):
