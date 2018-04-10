@@ -55,4 +55,38 @@ GRANT USAGE ON SCHEMA controle TO controle_pto;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA controle TO controle_pto;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA controle TO controle_pto;
 
+CREATE OR REPLACE FUNCTION controle.atualiza_grade_mi()
+  RETURNS trigger AS
+$BODY$
+  BEGIN
+    UPDATE controle.medicao_mi_a AS m
+    SET total_pontos = g.total_pontos
+    FROM (SELECT m.mi, count(p.geom) AS total_pontos 
+    FROM controle.medicao_mi_a AS m LEFT JOIN controle.ponto_controle_p AS p 
+    ON st_contains(m.geom,p.geom)
+    GROUP BY m.mi) AS g
+    WHERE m.mi = g.mi;
+
+    UPDATE controle.medicao_mi_a AS m
+    SET pontos_medidos = g.pontos_medidos
+    FROM (SELECT m.mi, count(p.geom) AS pontos_medidos 
+    FROM controle.medicao_mi_a AS m LEFT JOIN controle.ponto_controle_p AS p 
+    ON st_contains(m.geom,p.geom)
+    WHERE p.tipo_situacao_id IN (4, 5)
+    GROUP BY m.mi) AS g
+    WHERE m.mi = g.mi;
+
+    RETURN NULL;
+  END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION controle.atualiza_grade_mi()
+  OWNER TO postgres;
+
+CREATE TRIGGER atualiza_grade_mi
+AFTER UPDATE OR INSERT OR DELETE ON controle.ponto_controle_p
+FOR EACH STATEMENT EXECUTE PROCEDURE controle.atualiza_grade_mi()
+
+
 COMMIT;
