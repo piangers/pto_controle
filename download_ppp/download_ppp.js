@@ -75,6 +75,3 @@ zips.forEach(zip => {
       .wait(10000);
   });
 });
-
-//npm install -g testcafe
-//testcafe -c 2 chrome upload_ppp.js

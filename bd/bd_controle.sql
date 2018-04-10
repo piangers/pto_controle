@@ -39,6 +39,18 @@ CREATE TABLE controle.trilha_l(
 	 WITH (FILLFACTOR = 80)
 );
 
+CREATE TABLE controle.medicao_mi_a(
+   id serial NOT NULL,
+   mi varchar(255) NOT NULL,
+   lote varchar(255),
+   equipe varchar(255),
+   pontos_medidos SMALLINT NOT NULL,
+   total_pontos SMALLINT NOT NULL,
+   geom geometry(POLYGON, 31982),
+   CONSTRAINT medicao_mi_a_pk PRIMARY KEY (id)
+     WITH (FILLFACTOR = 80)
+);
+
 GRANT USAGE ON SCHEMA controle TO controle_pto;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA controle TO controle_pto;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA controle TO controle_pto;
