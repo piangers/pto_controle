@@ -15,9 +15,9 @@ def cria_pastas(caminho):
         for d in dirs:
             print d, search(padrao,d)
             if search(padrao,d):
-                a = os.path.join(caminho,d,pasta1)
+                a = os.path.join(root,pasta1)
                 os.mkdir(a)
-                b = os.path.join(caminho,d,pasta2)
+                b = os.path.join(root,pasta2)
                 os.mkdir(b)
                 
                 
