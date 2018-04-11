@@ -13,12 +13,11 @@ def cria_pastas(caminho):
 
     for root, dirs, files in os.walk(caminho):
         for d in dirs:
-            print d, search(padrao,d)
             if search(padrao,d):
-                a = os.path.join(root,pasta1)
-                os.mkdir(a)
-                b = os.path.join(root,pasta2)
-                os.mkdir(b)
+                
+                os.mkdir (os.path.join(root,d, pasta1))
+                os.mkdir (os.path.join(root,d, pasta2))  
+             
                 
                 
 
