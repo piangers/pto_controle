@@ -92,7 +92,7 @@ class EvaluateStructure():
             erros.append(u"A pasta {0} deveria conter o arquivo CSV de informações dos pontos do dia (metadados_{1}_{2}.csv).".format(
                 pasta, medidor, data))
 
-        if len(set(files).difference([csv_name, "Thumbs.db"])) > 0:
+        if len(set(files).difference([csv_name, "Thumbs.db", "desktop.ini"])) > 0:
             for f in set(files).difference([csv_name]):
                 erros.append(
                     u"A pasta {0} não deveria conter o arquivo {1}.".format(pasta, f))
@@ -169,7 +169,7 @@ class EvaluateStructure():
     def no_files(pasta):
         erros = []
         files = [f for f in listdir(pasta) if isfile(
-            join(pasta, f)) and f != "Thumbs.db"]
+            join(pasta, f)) and f != "Thumbs.db" and f != "desktop.ini"]
         if len(files) > 0:
             for f in files:
                 try:
@@ -387,7 +387,7 @@ class EvaluateStructure():
         for f in files:
             if search(foto_regex, f):
                 fotos_ok.append(f)
-            elif f == "Thumbs.db":
+            elif f == "Thumbs.db" or f == "desktop.ini":
                 pass
             else:
                 erros.append(
@@ -408,7 +408,7 @@ class EvaluateStructure():
         for f in files:
             if search(foto_regex, f):
                 pass
-            elif f == "Thumbs.db":
+            elif f == "Thumbs.db" or f == "desktop.ini":
                 pass
             else:
                 erros.append(
@@ -422,7 +422,7 @@ class EvaluateStructure():
         files = [f.replace(".JPG", ".jpg")
                  for f in listdir(pasta) if isfile(join(pasta, f))]
         arquivos_incorretos = set(files).difference(
-            ["Thumbs.db", "{0}_CROQUI.jpg".format(pto)])
+            ["Thumbs.db", "desktop.ini", "{0}_CROQUI.jpg".format(pto)])
         arquivos_faltando = set(
             ["{0}_CROQUI.jpg".format(pto)]).difference(files)
         if len(arquivos_incorretos) > 0:
