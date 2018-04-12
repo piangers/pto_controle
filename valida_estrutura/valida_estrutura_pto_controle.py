@@ -3,7 +3,7 @@
 /***************************************************************************
 Name                 : Verifica estrutura Ponto de Controle
 Description          : Verifica estrutura de pasta padrão dos pontos de controle (somente PPP)
-Version              : 1.4.3
+Version              : 1.4.4
 copyright            : 1ºCGEO / DSG
 reference:
  ***************************************************************************/

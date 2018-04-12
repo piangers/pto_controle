@@ -3,7 +3,7 @@
 /***************************************************************************
 Name                 : Prepara estrutura de pastas para o processamento
 Description          : Cria pastas e compacta arquivos para iniciar o processamento PPP e TBC
-Version              : 0.1
+Version              : 1.0
 copyright            : 1ºCGEO / DSG
 reference:
  ***************************************************************************/
