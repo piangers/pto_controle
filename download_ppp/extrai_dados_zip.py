@@ -15,29 +15,35 @@ def busca_zip(local_zip,local_destino):
     padrao = "^[\w\.-]+[\w\.-]+@([\w-]+\.)+[\w-]+[\w]+(RS|PR|SC|SP)-(HV|Base)-[1-9]+[0-9]+(.zip)+[\w]+(LIB)+[\w]+[1-9]+[0-9]+[1-9]+[0-9]+[1-9]+[0-9]+[1-9]+(.zip)*$"
     
     endereco = []
-    for root, dirs, files in os.walk(local_destino):
+    for root2, dirs, files in os.walk(local_destino):
 
-        if root.split(R'/')[-1] == "6_Processamento_PPP":
-            caminho = root
-            endereco.append(caminho)
+        if root2.split(R'/')[-1] == "6_Processamento_PPP":
+            caminho = root2
+            p = caminho.split(R'/')[-2]  # comparação
+            endereco.append(p)
+            endereco.sort()
+    #print endereco    # mostar a lista de endereços a ser armazenado os ZIPs   
         
-             
-               
-               
-   
     for root, dirs, files in os.walk(local_zip):
         lista_zip = []
         for f in files:
+            
+        
             if search(padrao,f) and f.endswith('.zip') and os.path.isfile(os.path.join(root, f)):
-                s1 = f.split('_')[1]
-                s2 = s1.split('.')[0]
                 
-                #lista_compara = [x for x in pasta_correta if x not in s2]
-                #print (u"A pasta correspondente"+s2+"não esta presente!")
-                #if s2 == pasta_correta:
-                    
+                s1 = f.split('_')[1]
+                s2 = s1.split('.')[0] # s2 recebe o trecho do nome do ZIP selecionado, que será comparado com o do endereço
+                lista_zip.append(s2)
+                lista_zip.sort()
+                            
+                # Preciso realizar comparações de listas para definir onde serão realizadas as extrações ZIP.
+                # Para cada comparação ele deve buscar o trecho do nome correspondente, no código endereço e comparar
+                # com o trecho do nome do zip para extrair na pasta correspondente, caso contrario não. 
+                
+                
+            
                     #zip = ZipFile(os.path.join(root, f))  
-                   # zip.extractall(os.path.join(destino))  
+                    #zip.extract(endereco) 
 
                         
 
