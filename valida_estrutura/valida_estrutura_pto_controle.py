@@ -338,7 +338,7 @@ class EvaluateStructure():
         files = [f.replace(".DAT", ".dat").replace(".T01", ".t01")
                  for f in listdir(pasta) if isfile(join(pasta, f))]
         arquivos_incorretos = set(files).difference(
-            ["{0}.dat".format(pto), "{0}.t01".format(pto)])
+            ["{0}.dat".format(pto), "{0}.t01".format(pto), "desktop.ini"])
         arquivos_faltando = set(["{0}.t01".format(pto)]).difference(files)
         if len(arquivos_incorretos) > 0:
             for a in arquivos_incorretos:
@@ -360,7 +360,7 @@ class EvaluateStructure():
             files.remove('{0}.zip'.format(pto))
 
         arquivos_incorretos = set(files).difference(
-            ["{0}.{1}n".format(pto, ano), "{0}.{1}o".format(pto, ano)])
+            ["{0}.{1}n".format(pto, ano), "{0}.{1}o".format(pto, ano), "desktop.ini"])
         arquivos_faltando = set(
             ["{0}.{1}n".format(pto, ano), "{0}.{1}o".format(pto, ano)]).difference(files)
         if len(arquivos_incorretos) > 0:
