@@ -24,7 +24,8 @@ from BeautifulSoup import BeautifulSoup
 def criaPDFs(path_wkthmltopdf, tbc_html_report, output_folder):
     config = pdfkit.configuration(wkhtmltopdf=path_wkthmltopdf)
     log = []
-    with open(tbc_html_report, "r") as f1:
+    fix_html = tbc_html_report.replace("file:///", "").replace('/', '\\')
+    with open(fix_html, "r") as f1:
         main = BeautifulSoup(f1)
         navigation =  main.findAll("frame", {"name": "NavigationFrame"})[0]["src"].replace("FILE://", "")
         with open(navigation, "r") as f2:
