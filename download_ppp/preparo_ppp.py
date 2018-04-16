@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ##DSG=group
-##pasta_dados=folder
+##pasta_zips=folder
 
 
 
@@ -10,7 +10,7 @@ import os
 from re import search
 from zipfile import ZipFile
 
-def cria_pastas_e_zip(caminho):
+def criaPastasZip(caminho):
     
     pasta1 = '6_Processamento_PPP'
     pasta2 = '7_processamento_TBC_RBMC'
@@ -31,10 +31,14 @@ def cria_pastas_e_zip(caminho):
                     for fl in files:
                         if search(nome_arq,fl):
                             novo_zip.write(os.path.join(root,fl),fl)
-    return conteudo                 
+    return conteudo
+
+
+if __name__ == '__builtin__':
+    criazipa = criaPastasZip(pasta_zips)                
                    
 if __name__ == '__main__':
     if len(sys.argv)>=1:
-        cria_zipa = cria_pastas_e_zip(sys.argv[1])
+        criazipa = criaPastasZip(sys.argv[1])
     else:
         print(u'Parametros incorretos!')
