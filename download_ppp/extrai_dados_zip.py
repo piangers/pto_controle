@@ -38,22 +38,41 @@ def busca_zip(local_zip,local_destino):
             for root2, dirs, files in os.walk(local_destino):
 
                 todos_os_zips = lista_zip.keys()
+                #print todos_os_zips
                 
                 if root2.split(R'/')[-1] == "6_Processamento_PPP":
+                    local = root2
                     pai = root2.split(R'/')[-2]
 
                     for z in todos_os_zips:
                         nome = z.split('_')[1].split('.')[0]
-                        
+                        #print z
                         if pai == nome:
+                            #print pai
+                            #print nome
                             caminho_zip = lista_zip[z]
+                            #print caminho_zip
                             
                             #EXTRAIR AQUI
-                   
+                            
+                            
                             with ZipFile(caminho_zip,"r") as zip_ref:
-                                zip_ref.extract(root2)
-                        
-                    
+                                    # carrega o zip
+                                    zip_obj = ZipFile(caminho_zip)
+                                    
+                                    # percorre todos arquivos dentro do zip.
+                                    for nome in zip_obj.namelist():
+                                        if not nome.endswith('/'): # se o arquivo(nome) não terminar com /, então descompacta.
+                                            outfile = open(os.path.join(caminho_zip, nome), 'wb')
+                                            
+                                            outfile.write(zip_obj.read(nome))
+                                            outfile.close()
+
+            
+
+    # nao deu erro, exclui o arquivo
+
+    #os.remove(arquivo)
 
             
             
