@@ -31,59 +31,61 @@ def busca_zip(local_zip,local_destino):
                 #lista_pedaco_zip.append(pedaco_nome_zip) # procurar em todos os elementos nessa lista
                 #lista_pedaco_zip.sort()
 
+    i = 0
+    todos_os_zips = lista_zip.keys()
+    for z in todos_os_zips:
+        caminho_zip = lista_zip[z]
+        nome = z.split('_')[1].split('.')[0]
+                
+        existe = False
+        
+        for local, dirs, files in os.walk(local_destino):
+            pai = ''
+            if local.split(R'/')[-1] == "6_Processamento_PPP":
+                pai = local.split(R'/')[-2]
+                
+            #print z
+            if pai == nome:
+                existe = True
 
+                if len(os.listdir(local)) > 0:
+                    frase = "O diretório " + local + " já contém arquivos!"
+                    frase.decode("utf8")
+                    print(frase)
+                    continue
 
+                
+                with ZipFile(caminho_zip,"r") as zip_ref: # carrega o zip
+                            
+                    zip_obj = ZipFile(caminho_zip)
+                        # percorre todos arquivos dentro do zip.
+                    for ob in zip_obj.namelist():
+                        filename = os.path.basename(ob)
+                        
+                        # pula diretórios
+                        if not filename:
+                            continue
 
-            endereco = []
-            for root2, dirs, files in os.walk(local_destino):
-
-                todos_os_zips = lista_zip.keys()
-                #print todos_os_zips
-                local = root2
-                if root2.split(R'/')[-1] == "6_Processamento_PPP":
+                        # copia o arquivo para o diretório destino (em vez de extraí-lo)
+                        abre = zip_ref.open(ob)
+                        pega = file(os.path.join(local, filename), "wb")
+                        with abre, pega:
+                            shutil.copyfileobj(abre, pega)
                     
-                    pai = root2.split(R'/')[-2]
+                    frase = "O ZIP para o MI "+ nome + " foi extraído com sucesso!"
+                    frase.decode("utf8")
+                    print (frase)
 
-                    for z in todos_os_zips:
-                        
-                        nome = z.split('_')[1].split('.')[0]
-                        #print z
-                        if pai == nome:
-                            #print pai, nome
-                            
-                            #print nome
-                            caminho_zip = lista_zip[z]
-                            #print caminho_zip
-                            
-                            #EXTRAIR AQUI
-                            
-                            
-                            with ZipFile(caminho_zip,"r") as zip_ref: # carrega o zip
-                                        
-                                zip_obj = ZipFile(caminho_zip)
-                                    # percorre todos arquivos dentro do zip.
-                                for ob in zip_obj.namelist():
-                                    filename = os.path.basename(ob)
-                                    
-                                    # pula diretórios
-                                    if not filename:
-                                        continue
-
-                                    # copia o arquivo para o diretório destino (em vez de extraí-lo)
-                                    abre = zip_ref.open(ob)
-                                    pega = file(os.path.join(local, filename), "wb")
-                                    with abre, pega:
-                                        shutil.copyfileobj(abre, pega)
-                                    
-                                    
-
-    # nao deu erro, exclui o arquivo
-
-    #os.remove(arquivo)
-
+                    
+        # Mostrar MI se a pasta ja tiver arquivos
+        if not existe:
+            frase = "O ZIP para o MI "+ nome + " não possui pasta correspondente!"
+            frase.decode("utf8")
+            print (frase)
             
-            
+                
+            # Mostrar MI se o ZIP não tiver uma pasta correspondente           
 
-                        
+
 busca_zip(R'/home/piangers/Documentos/desenvolvimento/preparo/zip_ppp_exemplo', R'/home/piangers/Documentos/desenvolvimento/preparo/2018-04-04')
 
