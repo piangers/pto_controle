@@ -6,7 +6,7 @@
 from zipfile import ZipFile
 import os
 from re import search
-
+import shutil
 
 
 def busca_zip(local_zip,local_destino):
@@ -39,16 +39,18 @@ def busca_zip(local_zip,local_destino):
 
                 todos_os_zips = lista_zip.keys()
                 #print todos_os_zips
-                
+                local = root2
                 if root2.split(R'/')[-1] == "6_Processamento_PPP":
-                    local = root2
+                    
                     pai = root2.split(R'/')[-2]
 
                     for z in todos_os_zips:
+                        
                         nome = z.split('_')[1].split('.')[0]
                         #print z
                         if pai == nome:
-                            #print pai
+                            #print pai, nome
+                            
                             #print nome
                             caminho_zip = lista_zip[z]
                             #print caminho_zip
@@ -56,19 +58,24 @@ def busca_zip(local_zip,local_destino):
                             #EXTRAIR AQUI
                             
                             
-                            with ZipFile(caminho_zip,"r") as zip_ref:
-                                    # carrega o zip
-                                    zip_obj = ZipFile(caminho_zip)
-                                    
+                            with ZipFile(caminho_zip,"r") as zip_ref: # carrega o zip
+                                        
+                                zip_obj = ZipFile(caminho_zip)
                                     # percorre todos arquivos dentro do zip.
-                                    for nome in zip_obj.namelist():
-                                        if not nome.endswith('/'): # se o arquivo(nome) não terminar com /, então descompacta.
-                                            outfile = open(os.path.join(caminho_zip, nome), 'wb')
-                                            
-                                            outfile.write(zip_obj.read(nome))
-                                            outfile.close()
+                                for ob in zip_obj.namelist():
+                                    filename = os.path.basename(ob)
+                                    
+                                    # pula diretórios
+                                    if not filename:
+                                        continue
 
-            
+                                    # copia o arquivo para o diretório destino (em vez de extraí-lo)
+                                    abre = zip_ref.open(ob)
+                                    pega = file(os.path.join(local, filename), "wb")
+                                    with abre, pega:
+                                        shutil.copyfileobj(abre, pega)
+                                    
+                                    
 
     # nao deu erro, exclui o arquivo
 
