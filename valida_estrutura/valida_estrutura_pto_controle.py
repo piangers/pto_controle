@@ -3,7 +3,7 @@
 /***************************************************************************
 Name                 : Verifica estrutura Ponto de Controle
 Description          : Verifica estrutura de pasta padrão dos pontos de controle (somente PPP)
-Version              : 1.4.4
+Version              : 1.4.5
 copyright            : 1ºCGEO / DSG
 reference:
  ***************************************************************************/
@@ -215,7 +215,6 @@ class EvaluateStructure():
             headers = csv_reader.fieldnames
             if len(set(headers).difference(columns)) > 0:
                 for col in set(headers).difference(columns):
-                    print pasta, col
                     erros.append(
                         u"{0} CSV - A coluna {1} está presente no CSV porém não é padrão.".format(pasta, col))
             if len(set(columns).difference(headers)) > 0:
@@ -231,8 +230,7 @@ class EvaluateStructure():
                         if minutes < 38:
                             erros.append(u"{0} CSV - O ponto {1} foi medido por menos de 40 min ({2} min).".format(pasta, row["cod_ponto"],minutes))
                     except Exception as e:
-                        print(e)
-                        erros.append(u"{0} CSV - O ponto {1} está possui valores inválidos para hora_fim_rastreio ou hora_inicio_rastreio.".format(pasta, row["cod_ponto"]))
+                        erros.append(u"{0} CSV - O ponto {1} possui valores invalidos para hora_fim_rastreio ou hora_inicio_rastreio.".format(pasta, row["cod_ponto"]))
                 if "altura_antena" in row:
                     try:
                         altura = float(row["altura_antena"].replace(',', '.'))
@@ -486,7 +484,6 @@ class EvaluateStructure():
                             erros.append(u"{0} - O ponto {1} tem diferença maior que 5 min entre o RINEX e o CSV para a hora_fim_rastreio".format(pasta, self.csv_data[key]["cod_ponto"]))
 
                 except Exception as e:
-                    print(e)
                     erros.append(u"{0} RINEX - O ponto {1} está possui valores inválidos para hora_fim_rastreio ou hora_inicio_rastreio. Contate o Gerente.".format(pasta, self.csv_data[key]["cod_ponto"]))
 
             else:
