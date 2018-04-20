@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-## DSG=group
-## local=folder
 
 from zipfile import ZipFile
 import os
@@ -84,8 +82,5 @@ def busca_zip(local_zip,local_destino):
             print (frase)
             
                 
-            # Mostrar MI se o ZIP não tiver uma pasta correspondente           
-
-
-busca_zip(R'/home/piangers/Documentos/desenvolvimento/preparo/zip_ppp_exemplo', R'/home/piangers/Documentos/desenvolvimento/preparo/2018-04-04')
+#busca_zip(R'/home/piangers/Documentos/desenvolvimento/preparo/zip_ppp_exemplo', R'/home/piangers/Documentos/desenvolvimento/preparo/2018-04-04')
 
