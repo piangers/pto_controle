@@ -3,7 +3,7 @@
 /***************************************************************************
 Name                 : Extrai dados processamento PPP e TBC
 Description          : Extrai dados do relatório de processamento em PDF do PPP e TBC e realiza o controle de qualidade
-Version              : 1.0
+Version              : 2.0
 copyright            : 1ºCGEO / DSG
 reference:
  ***************************************************************************/
@@ -20,11 +20,16 @@ reference:
 ##pasta_dados=folder
 ##csv_file=output file
 
-import PyPDF2
 import os 
 import math
 import sys
 from re import search
+
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+from pdfminer.converter import TextConverter
+from pdfminer.layout import LAParams
+from pdfminer.pdfpage import PDFPage
+from io import BytesIO
 
 def lerPPP(pasta):
     pdfs = []
@@ -37,16 +42,33 @@ def lerPPP(pasta):
     conteudo_list = []
     for pdf in pdfs:
         with open(pdf, "rb") as f:
-            conteudo = PyPDF2.PdfFileReader(f)
             ppp = {}
-            text = conteudo.getPage(0).extractText() 
-            ppp["PPP_N"] = text.split('\n')[74].replace(',', '.')
-            ppp["PPP_E"] = text.split('\n')[75].replace(',', '.')
-            ppp["PPP_h"] = text.split('\n')[73].replace(',', '.')
-            ppp["PPP_H"] = text.split('\n')[108].replace(',', '.')
-            ppp["nome_ponto"] = text.split('\n')[2].split(':')[1]
+            text = convertPDF(f)
+            ppp["PPP_N"] = text.split('\n')[64].replace(',', '.').strip()
+            ppp["PPP_E"] = text.split('\n')[67].replace(',', '.').strip()
+            ppp["PPP_h"] = text.split('\n')[59].replace(',', '.').strip()
+            ppp["PPP_H"] = text.split('\n')[50].replace(',', '.').strip()
+            ppp["nome_ponto"] = text.split('\n')[3].split(':')[1].strip()
             conteudo_list.append(ppp)
     return conteudo_list
+
+def convertPDF(file, password =''):
+    rsrcmgr = PDFResourceManager()
+    retstr = BytesIO()
+    codec = 'utf-8'
+    laparams = LAParams()
+    device = TextConverter(rsrcmgr, retstr, codec=codec, laparams=laparams)
+    interpreter = PDFPageInterpreter(rsrcmgr, device)
+    maxpages = 0
+    caching = True
+    pagenos=set()
+    for page in PDFPage.get_pages(file, pagenos, maxpages=maxpages, password=password,caching=caching, check_extractable=True):
+        interpreter.process_page(page)
+    text = retstr.getvalue()
+    text = text.decode("utf-8")
+    device.close()
+    retstr.close()
+    return text
 
 def lerTBC(pasta):
     pdfs = []
@@ -59,16 +81,18 @@ def lerTBC(pasta):
     conteudo_list = []
     for pdf in pdfs:
         with open(pdf, "rb") as f:
-            conteudo = PyPDF2.PdfFileReader(f)    
             tbc = {}
-            text = conteudo.getPage(0).extractText()
+            text = convertPDF(f)
+
             pto_regex = "^(RS|PR|SC|SP)-(HV|Base)-[1-9]+[0-9]*$"
-            x = [ i for i, pto in enumerate(text.split('\n')) if search(pto_regex, pto)][0]
-            tbc[u'nome_ponto'] = text.split('\n')[x]
-            tbc[u'TBC_E'] = text.split('\n')[x+5].replace(' m', '').replace(',', '.')
-            tbc[u'TBC_N'] = text.split('\n')[x+11].replace(' m', '').replace(',', '.')
-            tbc[u'TBC_h'] = text.split('\n')[x+17].replace(' m', '').replace(',', '.')
-            conteudo_list.append(tbc)
+            x = [ i for i, pto in enumerate(text.split('\n')) if search(pto_regex, pto)]
+            if len(x) > 0:
+                x = x[0]
+                tbc[u'nome_ponto'] = text.split('\n')[x].strip()
+                tbc[u'TBC_E'] = text.split('\n')[x+4].replace(' m', '').replace(',', '.').strip()
+                tbc[u'TBC_N'] = text.split('\n')[x+5].replace(' m', '').replace(',', '.').strip()
+                tbc[u'TBC_h'] = text.split('\n')[x+6].replace(' m', '').replace(',', '.').strip()
+                conteudo_list.append(tbc)
     return conteudo_list
 
 def merge_lists(l1, l2, key):
