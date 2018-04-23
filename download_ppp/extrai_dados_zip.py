@@ -27,7 +27,6 @@ def extrai_zip(local_zip,local_destino):
                 caminho = os.path.join(root,f)
                 lista_zip[f] = caminho
 
-    i = 0
     todos_os_zips = lista_zip.keys()
     for z in todos_os_zips:
         caminho_zip = lista_zip[z]
@@ -65,8 +64,7 @@ def extrai_zip(local_zip,local_destino):
                     frase = "O ZIP para o MI "+ nome + " foi extraído com sucesso!"
                     frase.decode("utf8")
                     print (frase)
-
-                    
+              
         if not existe:
             frase = "O ZIP para o MI "+ nome + " não possui pasta correspondente!"
             frase.decode("utf8")
