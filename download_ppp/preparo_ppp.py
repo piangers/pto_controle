@@ -34,10 +34,10 @@ def cria_pastas_e_zipa(caminho):
                         if search(nome_arq,fl):
                             novo_zip.write(os.path.join(root,fl),fl)
 
-
-cria_pastas_e_zipa(R'/home/piangers/Documentos/desenvolvimento/preparo/2018-04-04')            
+# referência de caminho.
+#cria_pastas_e_zipa(R'/home/piangers/Documentos/desenvolvimento/preparo/2018-04-04')            
                    
-''' if __name__ == '__builtin__':
+if __name__ == '__builtin__':
     cria_pastas_e_zipa(pasta_zips)
 
 if __name__ == '__main__':
@@ -45,4 +45,3 @@ if __name__ == '__main__':
         cria_pastas_e_zipa(sys.argv[1])
     else:
         print(u'Parametros incorretos!')
- '''
