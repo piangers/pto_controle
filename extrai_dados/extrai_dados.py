@@ -3,7 +3,7 @@
 /***************************************************************************
 Name                 : Extrai dados processamento PPP e TBC
 Description          : Extrai dados do relatório de processamento em PDF do PPP e TBC e realiza o controle de qualidade
-Version              : 2.0
+Version              : 2.1
 copyright            : 1ºCGEO / DSG
 reference:
  ***************************************************************************/
@@ -31,27 +31,6 @@ from pdfminer.layout import LAParams
 from pdfminer.pdfpage import PDFPage
 from io import BytesIO
 
-def lerPPP(pasta):
-    pdfs = []
-    for root, dirs, files in os.walk(pasta):
-        if root.split('\\')[-1] == "6_Processamento_PPP" and len(files) > 0:
-            for f in files:
-                if f.endswith('.pdf') and os.path.isfile(os.path.join(root, f)):
-                    pdfs.append(os.path.join(root, f))
-
-    conteudo_list = []
-    for pdf in pdfs:
-        with open(pdf, "rb") as f:
-            ppp = {}
-            text = convertPDF(f)
-            ppp["PPP_N"] = text.split('\n')[64].replace(',', '.').strip()
-            ppp["PPP_E"] = text.split('\n')[67].replace(',', '.').strip()
-            ppp["PPP_h"] = text.split('\n')[59].replace(',', '.').strip()
-            ppp["PPP_H"] = text.split('\n')[50].replace(',', '.').strip()
-            ppp["nome_ponto"] = text.split('\n')[3].split(':')[1].strip()
-            conteudo_list.append(ppp)
-    return conteudo_list
-
 def convertPDF(file, password =''):
     rsrcmgr = PDFResourceManager()
     retstr = BytesIO()
@@ -69,6 +48,28 @@ def convertPDF(file, password =''):
     device.close()
     retstr.close()
     return text
+
+def lerPPP(pasta):
+    pdfs = []
+    for root, dirs, files in os.walk(pasta):
+        if root.split('\\')[-1] == "6_Processamento_PPP" and len(files) > 0:
+            for f in files:
+                if f.endswith('.pdf') and os.path.isfile(os.path.join(root, f)):
+                    pdfs.append(os.path.join(root, f))
+
+    conteudo_list = []
+    for pdf in pdfs:
+        with open(pdf, "rb") as f:
+            ppp = {}
+            text = convertPDF(f)
+            ppp["orbita"] = text.split('\n')[24].strip().replace(u'RÁPIDA', 'RAPIDA')
+            ppp["PPP_N"] = text.split('\n')[64].replace(',', '.').strip()
+            ppp["PPP_E"] = text.split('\n')[67].replace(',', '.').strip()
+            ppp["PPP_h"] = text.split('\n')[59].replace(',', '.').strip()
+            ppp["PPP_H"] = text.split('\n')[50].replace(',', '.').strip()
+            ppp["nome_ponto"] = text.split('\n')[3].split(':')[1].strip()
+            conteudo_list.append(ppp)
+    return conteudo_list
 
 def lerTBC(pasta):
     pdfs = []
@@ -89,9 +90,9 @@ def lerTBC(pasta):
             if len(x) > 0:
                 x = x[0]
                 tbc[u'nome_ponto'] = text.split('\n')[x].strip()
-                tbc[u'TBC_E'] = text.split('\n')[x+4].replace(' m', '').replace(',', '.').strip()
-                tbc[u'TBC_N'] = text.split('\n')[x+5].replace(' m', '').replace(',', '.').strip()
-                tbc[u'TBC_h'] = text.split('\n')[x+6].replace(' m', '').replace(',', '.').strip()
+                tbc[u'TBC_E'] = text.split('\n')[x+32].replace(' m', '').replace(',', '.').strip()
+                tbc[u'TBC_N'] = text.split('\n')[x+42].replace(' m', '').replace(',', '.').strip()
+                tbc[u'TBC_h'] = text.split('\n')[x+52].replace(' m', '').replace(',', '.').strip()
                 conteudo_list.append(tbc)
     return conteudo_list
 
@@ -108,17 +109,19 @@ def criaCSV(nome_csv, ppp_list, tbc_list):
     merged = merge_lists(ppp_list, tbc_list, 'nome_ponto')
     erros = []
     with open(nome_csv, 'w') as f:
-        f.write('nome_ponto;PPP_N;PPP_E;PPP_h;PPP_H;TBC_N;TBC_E;TBC_h;Delta_N;Delta_E;Delta_h;Delta_EN\n')
+        f.write('nome_ponto;ORBITA;PPP_N;PPP_E;PPP_h;PPP_H;TBC_N;TBC_E;TBC_h;Delta_N;Delta_E;Delta_h;Delta_EN\n')
         for pto in merged:
             try:
                 pto["Delta_E"] = round(float(pto[u'PPP_E']) - float(pto[u'TBC_E']),3)
                 pto["Delta_N"] = round(float(pto[u'PPP_N']) - float(pto[u'TBC_N']),3)
-                pto["Delta_h"] = round(float(pto[u'PPP_h']) - float(pto[u'TBC_h']),3)
+                pto["Delta_h"] = math.fabs(round(float(pto[u'PPP_h']) - float(pto[u'TBC_h']),3))
                 pto["Delta_EN"] = round(math.sqrt(pto["Delta_E"]**2 + pto["Delta_N"]**2),3)
                 for key in pto:
                     pto[key] = "{0}".format(pto[key]).replace('.', ',')
-                f.write('{0};{1};{2};{3};{4};{5};{6};{7};{8};{9};{10};{11}\n'.format(pto["nome_ponto"], pto["PPP_N"], pto["PPP_E"], pto["PPP_h"], pto["PPP_H"], pto["TBC_N"], pto["TBC_E"], pto["TBC_h"], pto["Delta_N"], pto["Delta_E"], pto["Delta_h"], pto["Delta_EN"]))
-            except:
+                f.write('{0};{1};{2};{3};{4};{5};{6};{7};{8};{9};{10};{11};{12}\n'.format(pto["nome_ponto"], pto["orbita"], pto["PPP_N"], pto["PPP_E"], pto["PPP_h"], pto["PPP_H"], pto["TBC_N"], pto["TBC_E"], pto["TBC_h"], pto["Delta_N"], pto["Delta_E"], pto["Delta_h"], pto["Delta_EN"]))
+            except Exception as e:
+                print e
+                print pto
                 erros.append(pto["nome_ponto"])
     return erros
 
@@ -129,7 +132,7 @@ if __name__ == '__builtin__':
     criaCSV(csv_file, ppp,tbc)
 
 if __name__ == '__main__':
-    if len(sys.argv) >= 3:
+    if len(sys.argv) == 3:
         tbc = lerTBC(sys.argv[1])
         ppp = lerPPP(sys.argv[1])
         print criaCSV(sys.argv[2], ppp,tbc)
